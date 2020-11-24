@@ -1,40 +1,33 @@
-# hello-frog
+# JFrog Support Bundle Flunky
 
 ## About this plugin
-This plugin is a template and a functioning example for a basic JFrog CLI plugin. 
-This README shows the expected structure of your plugin's README.
+This plugin helps with generating and exchanging a JFrog Support Bundle with JFrog Support.
 
 ## Installation with JFrog CLI
 Installing the latest version:
 
-`$ jfrog plugin install hello-frog`
+`$ jfrog plugin install jfrog-support-bundle-flunky`
 
 Installing a specific version:
 
-`$ jfrog plugin install hello-frog@version`
+`$ jfrog plugin install jfrog-support-bundle-flunky@version`
 
-Uninstalling a plugin
+Uninstalling the plugin
 
-`$ jfrog plugin uninstall hello-frog`
+`$ jfrog plugin uninstall jfrog-support-bundle-flunky`
 
 ## Usage
-### Commands
-* hello
+### Commands TBD
+* jfrog-support-bundle-flunky
     - Arguments:
-        - addressee - The name of the person you would like to greet.
-    - Flags:
-        - shout: Makes output uppercase **[Default: false]**
-        - repeat: Greets multiple times **[Default: 1]**
+        - case - The JFrog Support case number.
     - Example:
-    ```
-  $ jfrog hello-frog hello world --shout --repeat=2
-  
-  NEW GREETING: HELLO WORLD!
-  NEW GREETING: HELLO WORLD!
-  ```
+```
+$ jfrog jfrog-support-bundle-flunky 1234
+```
 
 ### Environment variables
-* HELLO_FROG_GREET_PREFIX - Adds a prefix to every greet **[Default: New greeting: ]**
+None.
 
 ## Additional info
 None.
