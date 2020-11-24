@@ -2,7 +2,7 @@
   <configuration default="false" name="Run plugin" type="GoApplicationRunConfiguration" factoryName="Go Application">
     <module name="jfrog-support-bundle-flunky" />
     <working_directory value="$PROJECT_DIR$" />
-    <parameters value="sb foo" />
+    <parameters value="sb foo --server-id=local" />
     <envs>
       <env name="JFROG_CLI_LOG_LEVEL" value="DEBUG" />
     </envs>
