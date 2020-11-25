@@ -85,9 +85,10 @@ func setUpLicense(t *testing.T, ctx context.Context, licenseKey string, err erro
 	postLicenseReq.Header["Content-Type"] = []string{"application/json"}
 	resp, err := http.DefaultClient.Do(postLicenseReq)
 	require.NoError(t, err)
-	bytes, err := ioutil.ReadAll(resp.Body)
+	_, err = ioutil.ReadAll(resp.Body)
 	require.NoError(t, err)
-	t.Logf("Deploy license: %s %s", resp.Status, string(bytes))
+	// DO NOT PRINT RESPONSE BODY: it may contain the license key in clear-text
+	t.Logf("Deploy license: %s", resp.Status)
 	require.Equal(t, http.StatusOK, resp.StatusCode, "License deploy failed")
 	getLicenseReq, err := http.NewRequestWithContext(ctx, "GET", licensesEndpointUrl, licensePayload)
 	require.NoError(t, err)
