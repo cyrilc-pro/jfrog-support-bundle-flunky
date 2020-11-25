@@ -5,14 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jfrog/jfrog-cli-core/artifactory/utils"
-	"github.com/jfrog/jfrog-cli-core/plugins/components"
 	"github.com/jfrog/jfrog-cli-core/utils/config"
 	"github.com/jfrog/jfrog-client-go/utils/log"
 	"net/http"
 	"time"
 )
 
-func createSupportBundle(ctx *components.Context, rtDetails *config.ArtifactoryDetails, conf *supportBundleCommandConfiguration) (creationResponse, error) {
+func createSupportBundle(rtDetails *config.ArtifactoryDetails, conf *supportBundleCommandConfiguration) (creationResponse, error) {
 	log.Debug(fmt.Sprintf("Create Support Bundle %s on %s", conf.caseNumber, rtDetails.Url))
 	response, body, err := sendHttpRequest(rtDetails, conf)
 	if err != nil {
@@ -48,6 +47,5 @@ func sendHttpRequest(rtDetails *config.ArtifactoryDetails, conf *supportBundleCo
 	request := fmt.Sprintf(`{"name": "JFrog Support Case number %s","description": "Generated on %s","parameters":{}}`,
 		conf.caseNumber,
 		time.Now().Format(time.RFC3339))
-	response, body, err := servicesManager.Client().SendPost(fmt.Sprintf("%sapi/system/support/bundle", rtDetails.Url), []byte(request), &httpClientDetails)
-	return response, body, nil
+	return servicesManager.Client().SendPost(fmt.Sprintf("%sapi/system/support/bundle", rtDetails.Url), []byte(request), &httpClientDetails)
 }

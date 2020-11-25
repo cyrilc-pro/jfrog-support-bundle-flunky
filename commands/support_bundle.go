@@ -59,7 +59,7 @@ func supportBundleCmd(ctx *components.Context) error {
 	log.Output(fmt.Sprintf("Case number is %s", conf.caseNumber))
 
 	// 1. Create Support Bundle
-	response, err := createSupportBundle(ctx, rtDetails, conf)
+	response, err := createSupportBundle(rtDetails, conf)
 	if err != nil {
 		return err
 	}
