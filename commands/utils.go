@@ -1,11 +1,18 @@
 package commands
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/jfrog/jfrog-cli-core/artifactory/commands"
 	"github.com/jfrog/jfrog-cli-core/plugins/components"
 	"github.com/jfrog/jfrog-cli-core/utils/config"
 	clientutils "github.com/jfrog/jfrog-client-go/utils"
+)
+
+const (
+	httpContentType         = "Content-Type"
+	httpJsonContentTypeJson = "application/json"
 )
 
 // Returns the Artifactory Details of the provided server-id, or the default one.
@@ -23,4 +30,28 @@ func getRtDetails(c *components.Context) (*config.ArtifactoryDetails, error) {
 		return nil, err
 	}
 	return details, nil
+}
+
+type JsonObject map[string]interface{}
+
+func parseJson(bytes []byte) (JsonObject, error) {
+	parsedResponse := make(JsonObject)
+	err := json.Unmarshal(bytes, &parsedResponse)
+	return parsedResponse, err
+}
+
+func (o JsonObject) getString(p string) (string, error) {
+	v, ok := o[p]
+	if !ok {
+		return "", fmt.Errorf("property %s not found", p)
+	}
+	s, ok := v.(string)
+	if !ok {
+		return "", fmt.Errorf("property %s is not a string", p)
+	}
+	return s, nil
+}
+
+func getEndpoint(rtDetails *config.ArtifactoryDetails, endpoint string, args ...interface{}) string {
+	return rtDetails.Url + fmt.Sprintf(endpoint, args...)
 }
