@@ -1,12 +1,19 @@
 package commands
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/jfrog/jfrog-cli-core/plugins/components"
 	"github.com/jfrog/jfrog-client-go/utils/log"
 	"strconv"
 	"strings"
+)
+
+const (
+	serverID        = "server-id"
+	downloadTimeout = "download-timeout"
+	retryInterval   = "retry-interval"
 )
 
 func GetSupportBundleCommand() components.Command {
@@ -33,8 +40,16 @@ func getArguments() []components.Argument {
 func getFlags() []components.Flag {
 	return []components.Flag{
 		components.StringFlag{
-			Name:        "server-id",
+			Name:        serverID,
 			Description: "Artifactory server ID configured using the config command.",
+		},
+		components.StringFlag{
+			Name:        downloadTimeout,
+			Description: "The timeout for download",
+		},
+		components.StringFlag{
+			Name:        retryInterval,
+			Description: "The duration to wait between retries",
 		},
 	}
 }
@@ -43,13 +58,14 @@ type supportBundleCommandConfiguration struct {
 	caseNumber string
 }
 
-func supportBundleCmd(ctx *components.Context) error {
-	conf, err := parseArguments(ctx)
+func supportBundleCmd(componentContext *components.Context) error {
+	ctx := context.Background()
+	conf, err := parseArguments(componentContext)
 	if err != nil {
 		return err
 	}
 
-	rtDetails, err := getRtDetails(ctx)
+	rtDetails, err := getRtDetails(componentContext)
 	if err != nil {
 		return err
 	}
@@ -63,13 +79,16 @@ func supportBundleCmd(ctx *components.Context) error {
 	if err != nil {
 		return err
 	}
+
 	// 2. Download Support Bundle
-	tmpFile, err := downloadSupportBundle(ctx, rtDetails, conf, response)
+	tmpFile, err := downloadSupportBundle(ctx, client, getTimeout(componentContext), getRetryInterval(componentContext),
+		response.ID)
 	if err != nil {
 		return err
 	}
+
 	// 3. Upload Support Bundle
-	return uploadSupportBundle(ctx, conf, tmpFile)
+	return uploadSupportBundle(componentContext, conf, tmpFile)
 }
 
 func parseArguments(ctx *components.Context) (*supportBundleCommandConfiguration, error) {
