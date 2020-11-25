@@ -36,3 +36,8 @@ jobs:
       env:
         TEST_LICENSE: ${{ secrets.TEST_LICENSE }}
       run: go test -timeout 30m -v ./...
+
+    - name: Lint
+      uses: actions-contrib/golangci-lint@v1
+      env:
+        GOROOT: ""
