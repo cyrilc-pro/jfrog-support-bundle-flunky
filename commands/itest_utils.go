@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/jfrog/jfrog-cli-core/utils/config"
 	"github.com/jfrog/jfrog-client-go/utils/log"
@@ -52,30 +51,30 @@ func RunIntegrationTests(t *testing.T, tests []IntegrationTest) {
 	port, err := rtContainer.MappedPort(ctx, "8082")
 	require.NoError(t, err)
 
-	rtDetails := config.ArtifactoryDetails{
+	rtDetails := &config.ArtifactoryDetails{
 		Url:      fmt.Sprintf("http://%s:%d/artifactory/", ip, port.Int()),
 		User:     "admin",
 		Password: "password",
 	}
 
-	setUpLicense(t, ctx, licenseKey, rtDetails)
+	setUpLicense(ctx, t, licenseKey, rtDetails)
 
 	log.SetLogger(&testLog{t: t})
 
 	for i := range tests {
 		test := tests[i]
 		t.Run(test.Name, func(t *testing.T) {
-			test.Function(t, &rtDetails)
+			test.Function(t, rtDetails)
 		})
 	}
 }
 
-func setUpLicense(t *testing.T, ctx context.Context, licenseKey string, rtDetails config.ArtifactoryDetails) {
-	deployTestLicense(t, ctx, licenseKey, rtDetails)
-	waitForLicenseDeployed(t, ctx, rtDetails)
+func setUpLicense(ctx context.Context, t *testing.T, licenseKey string, rtDetails *config.ArtifactoryDetails) {
+	deployTestLicense(ctx, t, licenseKey, rtDetails)
+	waitForLicenseDeployed(ctx, t, rtDetails)
 }
 
-func waitForLicenseDeployed(t *testing.T, ctx context.Context, rtDetails config.ArtifactoryDetails) {
+func waitForLicenseDeployed(ctx context.Context, t *testing.T, rtDetails *config.ArtifactoryDetails) {
 	req, err := http.NewRequestWithContext(ctx, "GET", getLicensesEndpointUrl(rtDetails), nil)
 	require.NoError(t, err)
 	req.SetBasicAuth(rtDetails.User, rtDetails.Password)
@@ -93,12 +92,13 @@ func waitForLicenseDeployed(t *testing.T, ctx context.Context, rtDetails config.
 			require.NoError(t, err)
 			require.Equal(t, http.StatusOK, resp.StatusCode, "License check failed")
 			bytes, err := ioutil.ReadAll(resp.Body)
+			_ = resp.Body.Close()
 			require.NoError(t, err)
 			t.Logf("Get license: %s %s", resp.Status, string(bytes))
-			payload := make(map[string]interface{})
-			err = json.Unmarshal(bytes, &payload)
+			json, err := parseJson(bytes)
 			require.NoError(t, err)
-			licenseType := payload["type"]
+			licenseType, err := json.getString("type")
+			require.NoError(t, err)
 			if licenseType != "N/A" {
 				t.Logf("License %v applied", licenseType)
 				retry = false
@@ -107,12 +107,12 @@ func waitForLicenseDeployed(t *testing.T, ctx context.Context, rtDetails config.
 	}
 }
 
-func deployTestLicense(t *testing.T, ctx context.Context, licenseKey string, rtDetails config.ArtifactoryDetails) {
+func deployTestLicense(ctx context.Context, t *testing.T, licenseKey string, rtDetails *config.ArtifactoryDetails) {
 	licensePayload := strings.NewReader(fmt.Sprintf(`{"licenseKey":"%s"}`, licenseKey))
 	req, err := http.NewRequestWithContext(ctx, "POST", getLicensesEndpointUrl(rtDetails), licensePayload)
 	require.NoError(t, err)
 	req.SetBasicAuth(rtDetails.User, rtDetails.Password)
-	req.Header["Content-Type"] = []string{"application/json"}
+	req.Header[httpContentType] = []string{httpJsonContentTypeJson}
 	resp, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)
 	_, err = ioutil.ReadAll(resp.Body)
@@ -122,8 +122,8 @@ func deployTestLicense(t *testing.T, ctx context.Context, licenseKey string, rtD
 	require.Equal(t, http.StatusOK, resp.StatusCode, "License deploy failed")
 }
 
-func getLicensesEndpointUrl(rtDetails config.ArtifactoryDetails) string {
-	return fmt.Sprintf("%sapi/system/licenses", rtDetails.Url)
+func getLicensesEndpointUrl(rtDetails *config.ArtifactoryDetails) string {
+	return getEndpoint(rtDetails, "api/system/licenses")
 }
 
 type testLog struct {

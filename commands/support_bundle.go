@@ -58,8 +58,10 @@ func supportBundleCmd(ctx *components.Context) error {
 	log.Debug(fmt.Sprintf("Using: %s...", rtDetails.Url))
 	log.Output(fmt.Sprintf("Case number is %s", conf.caseNumber))
 
+	client := &HttpClient{rtDetails: rtDetails}
+
 	// 1. Create Support Bundle
-	response, err := createSupportBundle(rtDetails, conf)
+	response, err := createSupportBundle(client, conf, Now)
 	if err != nil {
 		return err
 	}
