@@ -1,5 +1,5 @@
 package commands
 
 type creationResponse struct {
-	Id string
+	ID string
 }

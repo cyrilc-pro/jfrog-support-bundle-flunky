@@ -5,22 +5,23 @@ import (
 	"github.com/jfrog/jfrog-cli-core/utils/config"
 )
 
-type HttpClient struct {
+type HTTPClient struct {
 	rtDetails *config.ArtifactoryDetails
 }
 
-func (c *HttpClient) GetUrl() string {
+func (c *HTTPClient) GetURL() string {
 	return c.rtDetails.Url
 }
 
-func (c *HttpClient) CreateSupportBundle(requestPayload string) (int, []byte, error) {
+func (c *HTTPClient) CreateSupportBundle(requestPayload string) (status int, responseBytes []byte, err error) {
 	servicesManager, err := utils.CreateServiceManager(c.rtDetails, false)
 	if err != nil {
 		return -1, nil, err
 	}
 	httpClientDetails := servicesManager.GetConfig().GetServiceDetails().CreateHttpClientDetails()
-	httpClientDetails.Headers[httpContentType] = httpJsonContentTypeJson
-	response, bytes, err := servicesManager.Client().SendPost(getEndpoint(c.rtDetails, "api/system/support/bundle"), []byte(requestPayload), &httpClientDetails)
+	httpClientDetails.Headers[httpContentType] = httpContentTypeJSON
+	response, bytes, err := servicesManager.Client().SendPost(getEndpoint(c.rtDetails, "api/system/support/bundle"),
+		[]byte(requestPayload), &httpClientDetails)
 	if err != nil {
 		return -1, nil, err
 	}

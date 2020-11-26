@@ -6,18 +6,18 @@ import (
 	"testing"
 )
 
-type createSupportBundleHttpClientStub struct {
+type createSupportBundleHTTPClientStub struct {
 	statusCode    int
 	response      string
 	err           error
 	actualPayload string
 }
 
-func (c *createSupportBundleHttpClientStub) GetUrl() string {
+func (c *createSupportBundleHTTPClientStub) GetURL() string {
 	return "stub"
 }
 
-func (c *createSupportBundleHttpClientStub) CreateSupportBundle(payload string) (int, []byte, error) {
+func (c *createSupportBundleHTTPClientStub) CreateSupportBundle(payload string) (status int, responseBytes []byte, err error) {
 	c.actualPayload = payload
 	return c.statusCode, []byte(c.response), c.err
 }
@@ -25,23 +25,23 @@ func (c *createSupportBundleHttpClientStub) CreateSupportBundle(payload string) 
 func Test_CreateSupportBundle(t *testing.T) {
 	tests := []struct {
 		name       string
-		given      createSupportBundleHttpClientStub
+		given      createSupportBundleHTTPClientStub
 		expectErr  string
 		expectResp creationResponse
 	}{
 		{
 			name: "success",
-			given: createSupportBundleHttpClientStub{
+			given: createSupportBundleHTTPClientStub{
 				statusCode: 200,
 				response:   `{"id": "foo"}`,
 				err:        nil,
 			},
 			expectErr:  "",
-			expectResp: creationResponse{Id: "foo"},
+			expectResp: creationResponse{ID: "foo"},
 		},
 		{
 			name: "bad request",
-			given: createSupportBundleHttpClientStub{
+			given: createSupportBundleHTTPClientStub{
 				statusCode: 400,
 				response:   `{}`,
 				err:        nil,
@@ -50,7 +50,7 @@ func Test_CreateSupportBundle(t *testing.T) {
 		},
 		{
 			name: "bad json",
-			given: createSupportBundleHttpClientStub{
+			given: createSupportBundleHTTPClientStub{
 				statusCode: 200,
 				response:   `bad json`,
 				err:        nil,
@@ -59,7 +59,7 @@ func Test_CreateSupportBundle(t *testing.T) {
 		},
 		{
 			name: "missing id",
-			given: createSupportBundleHttpClientStub{
+			given: createSupportBundleHTTPClientStub{
 				statusCode: 200,
 				response:   `{}`,
 				err:        nil,
@@ -68,7 +68,7 @@ func Test_CreateSupportBundle(t *testing.T) {
 		},
 		{
 			name: "bad id",
-			given: createSupportBundleHttpClientStub{
+			given: createSupportBundleHTTPClientStub{
 				statusCode: 200,
 				response:   `{"id":{}}`,
 				err:        nil,
@@ -77,7 +77,7 @@ func Test_CreateSupportBundle(t *testing.T) {
 		},
 		{
 			name: "error",
-			given: createSupportBundleHttpClientStub{
+			given: createSupportBundleHTTPClientStub{
 				err: errors.New("oops"),
 			},
 			expectErr: "oops",
@@ -98,7 +98,8 @@ func Test_CreateSupportBundle(t *testing.T) {
 			} else {
 				require.Equal(t, test.expectResp, resp)
 			}
-			require.Equal(t, `{"name": "JFrog Support Case number 1234","description": "Generated on now","parameters":{}}`, test.given.actualPayload)
+			require.Equal(t, `{"name": "JFrog Support Case number 1234","description": "Generated on now","parameters":{}}`,
+				test.given.actualPayload)
 		})
 	}
 }
