@@ -75,7 +75,7 @@ func setUpLicense(ctx context.Context, t *testing.T, licenseKey string, rtDetail
 }
 
 func waitForLicenseDeployed(ctx context.Context, t *testing.T, rtDetails *config.ArtifactoryDetails) {
-	req, err := http.NewRequestWithContext(ctx, "GET", getLicensesEndpointUrl(rtDetails), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", getLicensesEndpointURL(rtDetails), nil)
 	require.NoError(t, err)
 	req.SetBasicAuth(rtDetails.User, rtDetails.Password)
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
@@ -92,10 +92,10 @@ func waitForLicenseDeployed(ctx context.Context, t *testing.T, rtDetails *config
 			require.NoError(t, err)
 			require.Equal(t, http.StatusOK, resp.StatusCode, "License check failed")
 			bytes, err := ioutil.ReadAll(resp.Body)
-			_ = resp.Body.Close()
 			require.NoError(t, err)
+			_ = resp.Body.Close()
 			t.Logf("Get license: %s %s", resp.Status, string(bytes))
-			json, err := parseJson(bytes)
+			json, err := parseJSON(bytes)
 			require.NoError(t, err)
 			licenseType, err := json.getString("type")
 			require.NoError(t, err)
@@ -109,21 +109,22 @@ func waitForLicenseDeployed(ctx context.Context, t *testing.T, rtDetails *config
 
 func deployTestLicense(ctx context.Context, t *testing.T, licenseKey string, rtDetails *config.ArtifactoryDetails) {
 	licensePayload := strings.NewReader(fmt.Sprintf(`{"licenseKey":"%s"}`, licenseKey))
-	req, err := http.NewRequestWithContext(ctx, "POST", getLicensesEndpointUrl(rtDetails), licensePayload)
+	req, err := http.NewRequestWithContext(ctx, "POST", getLicensesEndpointURL(rtDetails), licensePayload)
 	require.NoError(t, err)
 	req.SetBasicAuth(rtDetails.User, rtDetails.Password)
-	req.Header[httpContentType] = []string{httpJsonContentTypeJson}
+	req.Header[httpContentType] = []string{httpContentTypeJSON}
 	resp, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)
 	_, err = ioutil.ReadAll(resp.Body)
+	defer func() { _ = resp.Body.Close() }()
 	require.NoError(t, err)
 	// DO NOT PRINT RESPONSE BODY: it may contain the license key in clear-text
 	t.Logf("Deploy license: %s", resp.Status)
 	require.Equal(t, http.StatusOK, resp.StatusCode, "License deploy failed")
 }
 
-func getLicensesEndpointUrl(rtDetails *config.ArtifactoryDetails) string {
-	return getEndpoint(rtDetails, "api/system/licenses")
+func getLicensesEndpointURL(rtDetails *config.ArtifactoryDetails) string {
+	return fmt.Sprintf("%sapi/system/licenses", rtDetails.Url)
 }
 
 type testLog struct {

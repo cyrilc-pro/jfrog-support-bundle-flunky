@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	httpContentType         = "Content-Type"
-	httpJsonContentTypeJson = "application/json"
+	httpContentType     = "Content-Type"
+	httpContentTypeJSON = "application/json"
 )
 
 // Returns the Artifactory Details of the provided server-id, or the default one.
@@ -32,15 +32,15 @@ func getRtDetails(c *components.Context) (*config.ArtifactoryDetails, error) {
 	return details, nil
 }
 
-type JsonObject map[string]interface{}
+type JSONObject map[string]interface{}
 
-func parseJson(bytes []byte) (JsonObject, error) {
-	parsedResponse := make(JsonObject)
+func parseJSON(bytes []byte) (JSONObject, error) {
+	parsedResponse := make(JSONObject)
 	err := json.Unmarshal(bytes, &parsedResponse)
 	return parsedResponse, err
 }
 
-func (o JsonObject) getString(p string) (string, error) {
+func (o JSONObject) getString(p string) (string, error) {
 	v, ok := o[p]
 	if !ok {
 		return "", fmt.Errorf("property %s not found", p)

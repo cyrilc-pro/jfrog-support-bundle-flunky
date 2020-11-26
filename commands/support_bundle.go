@@ -17,9 +17,7 @@ func GetSupportBundleCommand() components.Command {
 		Arguments:   getArguments(),
 		Flags:       getFlags(),
 		EnvVars:     nil,
-		Action: func(c *components.Context) error {
-			return supportBundleCmd(c)
-		},
+		Action:      supportBundleCmd,
 	}
 }
 
@@ -58,7 +56,7 @@ func supportBundleCmd(ctx *components.Context) error {
 	log.Debug(fmt.Sprintf("Using: %s...", rtDetails.Url))
 	log.Output(fmt.Sprintf("Case number is %s", conf.caseNumber))
 
-	client := &HttpClient{rtDetails: rtDetails}
+	client := &HTTPClient{rtDetails: rtDetails}
 
 	// 1. Create Support Bundle
 	response, err := createSupportBundle(client, conf, Now)

@@ -6,13 +6,14 @@ import (
 	"net/http"
 )
 
-type createSupportBundleHttpClient interface {
-	GetUrl() string
+type createSupportBundleHTTPClient interface {
+	GetURL() string
 	CreateSupportBundle(payload string) (int, []byte, error)
 }
 
-func createSupportBundle(httpClient createSupportBundleHttpClient, conf *supportBundleCommandConfiguration, now Clock) (creationResponse, error) {
-	log.Debug(fmt.Sprintf("Create Support Bundle %s on %s", conf.caseNumber, httpClient.GetUrl()))
+func createSupportBundle(httpClient createSupportBundleHTTPClient, conf *supportBundleCommandConfiguration,
+	now Clock) (creationResponse, error) {
+	log.Debug(fmt.Sprintf("Create Support Bundle %s on %s", conf.caseNumber, httpClient.GetURL()))
 	request := fmt.Sprintf(`{"name": "JFrog Support Case number %s","description": "Generated on %s","parameters":{}}`,
 		conf.caseNumber,
 		now())
@@ -25,7 +26,7 @@ func createSupportBundle(httpClient createSupportBundleHttpClient, conf *support
 	if responseStatus != http.StatusOK {
 		return creationResponse{}, fmt.Errorf("http request failed with: %d", responseStatus)
 	}
-	json, err := parseJson(body)
+	json, err := parseJSON(body)
 	if err != nil {
 		return creationResponse{}, err
 	}
@@ -33,5 +34,5 @@ func createSupportBundle(httpClient createSupportBundleHttpClient, conf *support
 	if err != nil {
 		return creationResponse{}, err
 	}
-	return creationResponse{Id: id}, nil
+	return creationResponse{ID: id}, nil
 }
