@@ -6,7 +6,10 @@ import (
 	"testing"
 )
 
-func Test_Create(t *testing.T) {
+func Test_CreateIntegration(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test")
+	}
 	tests := []IntegrationTest{
 		{
 			Name: "Success",

@@ -11,7 +11,10 @@ import (
 	"time"
 )
 
-func Test_Download(t *testing.T) {
+func Test_DownloadIntegration(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test")
+	}
 	tests := []IntegrationTest{
 		{
 			Name: "Success",
