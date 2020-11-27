@@ -41,7 +41,6 @@ func (cs *checkStatusClientStub) GetURL() string {
 	return url
 }
 
-// nolint: funlen
 func Test_WaitUntilReady(t *testing.T) {
 	tests := []struct {
 		name                 string
