@@ -34,7 +34,7 @@ func (c *HTTPClient) CreateSupportBundle(requestPayload string) (status int, res
 }
 
 // This returns the support bundle in the response.Body. Closing the body is the caller's responsibility.
-func (c *HTTPClient) DownloadSupportBundle(bundleID string) (*http.Response, error) {
+func (c *HTTPClient) DownloadSupportBundle(bundleID bundleID) (*http.Response, error) {
 	servicesManager, err := utils.CreateServiceManager(c.rtDetails, false)
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (c *HTTPClient) DownloadSupportBundle(bundleID string) (*http.Response, err
 }
 
 // nolint: bodyclose
-func (c *HTTPClient) GetSupportBundleStatus(bundleID string) (status int, responseBytes []byte, err error) {
+func (c *HTTPClient) GetSupportBundleStatus(bundleID bundleID) (status int, responseBytes []byte, err error) {
 	servicesManager, err := utils.CreateServiceManager(c.rtDetails, false)
 	if err != nil {
 		return undefinedStatusCode, nil, err

@@ -75,14 +75,14 @@ func supportBundleCmd(componentContext *components.Context) error {
 	client := &HTTPClient{rtDetails: rtDetails}
 
 	// 1. Create Support Bundle
-	response, err := createSupportBundle(client, conf, Now)
+	supportBundle, err := createSupportBundle(client, conf, Now)
 	if err != nil {
 		return err
 	}
 
 	// 2. Download Support Bundle
 	tmpFile, err := downloadSupportBundle(ctx, client, getTimeout(componentContext), getRetryInterval(componentContext),
-		response.ID)
+		supportBundle)
 	if err != nil {
 		return err
 	}

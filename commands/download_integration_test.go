@@ -19,11 +19,11 @@ func Test_DownloadIntegration(t *testing.T) {
 		{
 			Name: "Success",
 			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails) {
-				bundleID := setUpSupportBundle(t, rtDetails)
+				supportBundle := setUpSupportBundle(t, rtDetails)
 				bundle, err := downloadSupportBundle(context.Background(), &HTTPClient{rtDetails: rtDetails},
-					30*time.Second, 100*time.Millisecond, bundleID)
+					30*time.Second, 100*time.Millisecond, supportBundle)
 				require.NoError(t, err)
-				assert.Contains(t, bundle, bundleID)
+				assert.Contains(t, bundle, supportBundle)
 				assert.True(t, fileutils.IsZip(bundle))
 				assertBundleIsAZipArchive(t, bundle)
 			},
@@ -47,11 +47,11 @@ func assertBundleIsAZipArchive(t *testing.T, bundle string) {
 	require.NoError(t, r.Close())
 }
 
-func setUpSupportBundle(t *testing.T, rtDetails *config.ArtifactoryDetails) string {
+func setUpSupportBundle(t *testing.T, rtDetails *config.ArtifactoryDetails) bundleID {
 	t.Helper()
 	conf := supportBundleCommandConfiguration{caseNumber: "foo"}
-	r, err := createSupportBundle(&HTTPClient{rtDetails: rtDetails}, &conf, Now)
+	supportBundle, err := createSupportBundle(&HTTPClient{rtDetails: rtDetails}, &conf, Now)
 	require.NoError(t, err)
-	require.NotEmpty(t, r.ID)
-	return r.ID
+	require.NotEmpty(t, supportBundle)
+	return supportBundle
 }
