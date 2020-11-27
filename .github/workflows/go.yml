@@ -43,7 +43,15 @@ jobs:
       - name: Test
         env:
           TEST_LICENSE: ${{ secrets.TEST_LICENSE }}
-        run: go test -timeout 30m -v ./...
+        run: go test -timeout 30m -v ./... -coverprofile=coverage.txt -covermode=count
+
+      - name: Upload coverage report to Codecov.io
+        uses: codecov/codecov-action@v1.0.15
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.txt
+          flags: 7.9
+          name: codecov-umbrella
 
   lint:
     name: Lint
