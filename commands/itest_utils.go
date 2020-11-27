@@ -31,9 +31,13 @@ func RunIntegrationTests(t *testing.T, tests []IntegrationTest) {
 		t.Skip("Environment variable TEST_LICENSE does not contain a license key")
 		return
 	}
+	version, exists := os.LookupEnv("ARTIFACTORY_VERSION")
+	if !exists {
+		version = "latest"
+	}
 	ctx := context.Background()
 	req := testcontainers.ContainerRequest{
-		Image:        "docker.bintray.io/jfrog/artifactory-pro:7.9.0",
+		Image:        "docker.bintray.io/jfrog/artifactory-pro:" + version,
 		ExposedPorts: []string{"8082"},
 		WaitingFor: wait.ForHTTP("/artifactory/api/system/ping").
 			WithPort("8082").
