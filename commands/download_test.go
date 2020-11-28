@@ -23,17 +23,17 @@ type checkStatusClientStub struct {
 	statusCode       int
 	payloads         []string
 	err              error
-	receivedBundleID string
+	receivedBundleID bundleID
 }
 
-func (cs *checkStatusClientStub) GetSupportBundleStatus(bundleID string) (status int, responseBytes []byte, err error) {
+func (cs *checkStatusClientStub) GetSupportBundleStatus(bundleID bundleID) (status int, responseBytes []byte, err error) {
 	responseBytes = []byte(cs.payloads[cs.count])
 	cs.receivedBundleID = bundleID
 	cs.count++
 	return cs.statusCode, responseBytes, cs.err
 }
 
-func (cs *checkStatusClientStub) DownloadSupportBundle(string) (*http.Response, error) {
+func (cs *checkStatusClientStub) DownloadSupportBundle(_ bundleID) (*http.Response, error) {
 	return nil, nil
 }
 
@@ -41,7 +41,6 @@ func (cs *checkStatusClientStub) GetURL() string {
 	return url
 }
 
-// nolint: funlen
 func Test_WaitUntilReady(t *testing.T) {
 	tests := []struct {
 		name                 string
@@ -153,7 +152,7 @@ func Test_WaitUntilReady(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 			}
-			assert.Equal(t, "bundleID", test.clientStub.receivedBundleID)
+			assert.Equal(t, bundleID("bundleID"), test.clientStub.receivedBundleID)
 		})
 	}
 }
@@ -161,14 +160,14 @@ func Test_WaitUntilReady(t *testing.T) {
 type downloadClientStub struct {
 	response         *http.Response
 	err              error
-	receivedBundleID string
+	receivedBundleID bundleID
 }
 
-func (dc *downloadClientStub) GetSupportBundleStatus(string) (status int, responseBytes []byte, err error) {
+func (dc *downloadClientStub) GetSupportBundleStatus(bundleID) (status int, responseBytes []byte, err error) {
 	return http.StatusOK, []byte(fmt.Sprintf(body, "success")), nil
 }
 
-func (dc *downloadClientStub) DownloadSupportBundle(bundleID string) (*http.Response, error) {
+func (dc *downloadClientStub) DownloadSupportBundle(bundleID bundleID) (*http.Response, error) {
 	dc.receivedBundleID = bundleID
 	return dc.response, dc.err
 }
@@ -235,7 +234,7 @@ func Test_DownloadSupportBundle(t *testing.T) {
 				require.NoError(t, err)
 				assert.Contains(t, filePath, "bundleID.zip")
 			}
-			assert.Equal(t, "bundleID", test.clientStub.receivedBundleID)
+			assert.Equal(t, bundleID("bundleID"), test.clientStub.receivedBundleID)
 		})
 	}
 }

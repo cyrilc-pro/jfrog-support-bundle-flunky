@@ -24,10 +24,10 @@ func (c *createSupportBundleHTTPClientStub) CreateSupportBundle(payload string) 
 
 func Test_CreateSupportBundle(t *testing.T) {
 	tests := []struct {
-		name       string
-		given      createSupportBundleHTTPClientStub
-		expectErr  string
-		expectResp creationResponse
+		name      string
+		given     createSupportBundleHTTPClientStub
+		expectErr string
+		expectID  bundleID
 	}{
 		{
 			name: "success",
@@ -36,8 +36,8 @@ func Test_CreateSupportBundle(t *testing.T) {
 				response:   `{"id": "foo"}`,
 				err:        nil,
 			},
-			expectErr:  "",
-			expectResp: creationResponse{ID: "foo"},
+			expectErr: "",
+			expectID:  "foo",
 		},
 		{
 			name: "bad request",
@@ -91,12 +91,12 @@ func Test_CreateSupportBundle(t *testing.T) {
 				caseNumber: "1234",
 			}
 			now := func() string { return "now" }
-			resp, err := createSupportBundle(&test.given, conf, now)
+			id, err := createSupportBundle(&test.given, conf, now)
 			if test.expectErr != "" {
 				require.Error(t, err)
 				require.EqualError(t, err, test.expectErr)
 			} else {
-				require.Equal(t, test.expectResp, resp)
+				require.Equal(t, test.expectID, id)
 			}
 			require.Equal(t, `{"name": "JFrog Support Case number 1234","description": "Generated on now","parameters":{}}`,
 				test.given.actualPayload)

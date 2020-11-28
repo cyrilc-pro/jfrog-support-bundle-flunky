@@ -15,12 +15,12 @@ import (
 
 type downloadSupportBundleHTTPClient interface {
 	GetURL() string
-	DownloadSupportBundle(bundleID string) (*http.Response, error)
-	GetSupportBundleStatus(bundleID string) (int, []byte, error)
+	DownloadSupportBundle(bundleID bundleID) (*http.Response, error)
+	GetSupportBundleStatus(bundleID bundleID) (int, []byte, error)
 }
 
 func downloadSupportBundle(ctx context.Context, client downloadSupportBundleHTTPClient, timeout time.Duration,
-	retryInterval time.Duration, bundleID string) (string, error) {
+	retryInterval time.Duration, bundleID bundleID) (string, error) {
 	log.Debug(fmt.Sprintf("Download Support Bundle %s from %s", bundleID, client.GetURL()))
 
 	err := waitUntilSupportBundleIsReady(ctx, client, retryInterval, timeout, bundleID)
@@ -48,7 +48,7 @@ func downloadSupportBundle(ctx context.Context, client downloadSupportBundleHTTP
 	return tmpFilePath, nil
 }
 
-func downloadSupportBundleAndWriteToFile(client downloadSupportBundleHTTPClient, tmpZipFile *os.File, bundleID string) error {
+func downloadSupportBundleAndWriteToFile(client downloadSupportBundleHTTPClient, tmpZipFile *os.File, bundleID bundleID) error {
 	resp, err := client.DownloadSupportBundle(bundleID)
 	if err != nil {
 		return err
@@ -68,7 +68,7 @@ func downloadSupportBundleAndWriteToFile(client downloadSupportBundleHTTPClient,
 }
 
 func waitUntilSupportBundleIsReady(ctx context.Context, client downloadSupportBundleHTTPClient,
-	retryInterval time.Duration, timeout time.Duration, bundleID string) error {
+	retryInterval time.Duration, timeout time.Duration, bundleID bundleID) error {
 	ctxWithTimeout, cancelCtx := context.WithTimeout(ctx, timeout)
 	defer cancelCtx()
 	ticker := time.NewTicker(retryInterval)
