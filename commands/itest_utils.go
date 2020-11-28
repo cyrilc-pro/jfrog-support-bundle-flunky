@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"fmt"
+	"github.com/docker/go-connections/nat"
 	"github.com/jfrog/jfrog-cli-core/utils/config"
 	"github.com/jfrog/jfrog-client-go/utils/log"
 	"github.com/stretchr/testify/require"
@@ -17,7 +18,7 @@ import (
 	"time"
 )
 
-type IntegrationTestFunction func(*testing.T, *config.ArtifactoryDetails)
+type IntegrationTestFunction func(*testing.T, *config.ArtifactoryDetails, *config.ArtifactoryDetails)
 
 type IntegrationTest struct {
 	Name     string
@@ -36,6 +37,52 @@ func RunIntegrationTests(t *testing.T, tests []IntegrationTest) {
 		version = "latest"
 	}
 	ctx := context.Background()
+	rtContainer, err := createContainer(ctx, version)
+	require.NoError(t, err)
+
+	targetContainer, err := createContainer(ctx, version)
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		_ = rtContainer.Terminate(ctx)
+		_ = targetContainer.Terminate(ctx)
+	})
+
+	ip, err := rtContainer.Host(ctx)
+	require.NoError(t, err)
+	port, err := rtContainer.MappedPort(ctx, "8082")
+	require.NoError(t, err)
+	rtDetails := buildRtDetails(ip, port)
+
+	targetIP, err := targetContainer.Host(ctx)
+	require.NoError(t, err)
+	targetPort, err := targetContainer.MappedPort(ctx, "8082")
+	require.NoError(t, err)
+	targetRtDetails := buildRtDetails(targetIP, targetPort)
+
+	setUpLicense(ctx, t, licenseKey, rtDetails)
+	setUpLicense(ctx, t, licenseKey, targetRtDetails)
+	setUpTargetRepositoryAndPermissions(ctx, t, targetRtDetails)
+
+	log.SetLogger(&testLog{t: t})
+
+	for i := range tests {
+		test := tests[i]
+		t.Run(test.Name, func(t *testing.T) {
+			test.Function(t, rtDetails, targetRtDetails)
+		})
+	}
+}
+
+func buildRtDetails(ip string, port nat.Port) *config.ArtifactoryDetails {
+	return &config.ArtifactoryDetails{
+		Url:      fmt.Sprintf("http://%s:%d/artifactory/", ip, port.Int()),
+		User:     "admin",
+		Password: "password",
+	}
+}
+
+func createContainer(ctx context.Context, version string) (testcontainers.Container, error) {
 	req := testcontainers.ContainerRequest{
 		Image:        "docker.bintray.io/jfrog/artifactory-pro:" + version,
 		ExposedPorts: []string{"8082"},
@@ -48,29 +95,7 @@ func RunIntegrationTests(t *testing.T, tests []IntegrationTest) {
 		ContainerRequest: req,
 		Started:          true,
 	})
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = rtContainer.Terminate(ctx) })
-	ip, err := rtContainer.Host(ctx)
-	require.NoError(t, err)
-	port, err := rtContainer.MappedPort(ctx, "8082")
-	require.NoError(t, err)
-
-	rtDetails := &config.ArtifactoryDetails{
-		Url:      fmt.Sprintf("http://%s:%d/artifactory/", ip, port.Int()),
-		User:     "admin",
-		Password: "password",
-	}
-
-	setUpLicense(ctx, t, licenseKey, rtDetails)
-
-	log.SetLogger(&testLog{t: t})
-
-	for i := range tests {
-		test := tests[i]
-		t.Run(test.Name, func(t *testing.T) {
-			test.Function(t, rtDetails)
-		})
-	}
+	return rtContainer, err
 }
 
 func setUpLicense(ctx context.Context, t *testing.T, licenseKey string, rtDetails *config.ArtifactoryDetails) {
@@ -129,6 +154,72 @@ func deployTestLicense(ctx context.Context, t *testing.T, licenseKey string, rtD
 
 func getLicensesEndpointURL(rtDetails *config.ArtifactoryDetails) string {
 	return fmt.Sprintf("%sapi/system/licenses", rtDetails.Url)
+}
+
+func setUpTargetRepositoryAndPermissions(ctx context.Context, t *testing.T, rtDetails *config.ArtifactoryDetails) {
+	createLogRepository(ctx, t, rtDetails)
+	setAnonAccess(ctx, t, rtDetails)
+	createAnonymousPermission(ctx, t, rtDetails)
+}
+
+func createAnonymousPermission(ctx context.Context, t *testing.T, rtDetails *config.ArtifactoryDetails) {
+	payload := `{"name":"logsPerm","repo":{"repositories":["logs"],"actions":{"users":{"anonymous":["write"]}}}}`
+	url := fmt.Sprintf("%sapi/v2/security/permissions/logsPerm", rtDetails.Url)
+	req, err := http.NewRequestWithContext(ctx, "PUT", url, strings.NewReader(payload))
+	require.NoError(t, err)
+
+	req.SetBasicAuth(rtDetails.User, rtDetails.Password)
+	req.Header[httpContentType] = []string{httpContentTypeJSON}
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer func() { _ = resp.Body.Close() }()
+	t.Logf("Create anonymous permission on logs repository: status %s", resp.Status)
+	require.Equal(t, http.StatusOK, resp.StatusCode, "Add anonymous permission failed.")
+}
+
+func setAnonAccess(ctx context.Context, t *testing.T, rtDetails *config.ArtifactoryDetails) {
+	url := fmt.Sprintf("%sapi/system/configuration", rtDetails.Url)
+	getRequest, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	require.NoError(t, err)
+	getRequest.SetBasicAuth(rtDetails.User, rtDetails.Password)
+	getRequest.Header[httpContentType] = []string{httpContentTypeXML}
+	getResp, err := http.DefaultClient.Do(getRequest)
+	require.NoError(t, err)
+	getRespBody, err := ioutil.ReadAll(getResp.Body)
+	require.NoError(t, err)
+	defer func() { _ = getResp.Body.Close() }()
+
+	payload := strings.Replace(string(getRespBody), "<anonAccessEnabled>false</anonAccessEnabled>",
+		"<anonAccessEnabled>true</anonAccessEnabled>", 1)
+	postRequest, err := http.NewRequestWithContext(ctx, "POST", url, strings.NewReader(payload))
+	require.NoError(t, err)
+	postRequest.SetBasicAuth(rtDetails.User, rtDetails.Password)
+	postRequest.Header[httpContentType] = []string{httpContentTypeXML}
+	postResponse, err := http.DefaultClient.Do(postRequest)
+	require.NoError(t, err)
+	postResponseBody, err := ioutil.ReadAll(postResponse.Body)
+	require.NoError(t, err)
+	defer func() { _ = postResponse.Body.Close() }()
+	t.Logf("Set anonymous access: status %s, response: %s", getResp.Status, postResponseBody)
+	require.Equal(t, http.StatusOK, getResp.StatusCode, "Set anonymous access failed.")
+}
+
+func createLogRepository(ctx context.Context, t *testing.T, targetRtDetails *config.ArtifactoryDetails) {
+	payload := `{"key": "logs","rclass": "local","packageType": "generic"}`
+	url := fmt.Sprintf("%sapi/repositories/logs", targetRtDetails.Url)
+	req, err := http.NewRequestWithContext(ctx, "PUT", url, strings.NewReader(payload))
+	require.NoError(t, err)
+	req.SetBasicAuth(targetRtDetails.User, targetRtDetails.Password)
+	req.Header[httpContentType] = []string{httpContentTypeJSON}
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+
+	respBody, err := ioutil.ReadAll(resp.Body)
+	defer func() { _ = resp.Body.Close() }()
+	require.NoError(t, err)
+	t.Logf("Create logs repository: status %s, response: %s", resp.Status, respBody)
+	require.Equal(t, http.StatusOK, resp.StatusCode, "Create logs repo failed")
 }
 
 type testLog struct {

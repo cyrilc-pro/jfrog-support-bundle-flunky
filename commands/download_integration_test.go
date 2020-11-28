@@ -18,7 +18,8 @@ func Test_DownloadIntegration(t *testing.T) {
 	tests := []IntegrationTest{
 		{
 			Name: "Success",
-			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails) {
+			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails,
+				targetRtDetails *config.ArtifactoryDetails) {
 				supportBundle := setUpSupportBundle(t, rtDetails)
 				bundle, err := downloadSupportBundle(context.Background(), &HTTPClient{rtDetails: rtDetails},
 					30*time.Second, 100*time.Millisecond, supportBundle)
@@ -30,7 +31,8 @@ func Test_DownloadIntegration(t *testing.T) {
 		},
 		{
 			Name: "Not found",
-			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails) {
+			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails,
+				targetRtDetails *config.ArtifactoryDetails) {
 				bundle, err := downloadSupportBundle(context.Background(), &HTTPClient{rtDetails: rtDetails},
 					1*time.Second, 100*time.Millisecond, "unknown")
 				require.Empty(t, bundle)

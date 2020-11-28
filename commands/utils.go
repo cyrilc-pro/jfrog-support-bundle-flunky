@@ -2,7 +2,6 @@ package commands
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/jfrog/jfrog-cli-core/artifactory/commands"
 	"github.com/jfrog/jfrog-cli-core/plugins/components"
@@ -15,16 +14,33 @@ import (
 const (
 	httpContentType     = "Content-Type"
 	httpContentTypeJSON = "application/json"
+	httpContentTypeXML  = "application/xml"
 )
 
 // Returns the Artifactory Details of the provided server-id, or the default one.
 func getRtDetails(c *components.Context) (*config.ArtifactoryDetails, error) {
-	details, err := commands.GetConfig(c.GetStringFlagValue(serverID), false)
+	serverID := c.GetStringFlagValue(serverID)
+	return buildRtDetailsFromServerID(serverID)
+}
+
+// Returns the Artifactory Details of the target-server-id, or JFrog support logs configured ArtifactoryDetails.
+func getTargetDetails(c *components.Context,
+	conf *supportBundleCommandConfiguration) (bool, *config.ArtifactoryDetails, error) {
+	serverID := c.GetStringFlagValue(targetServerID)
+	if serverID == jfrogSupportLogsArtifactory {
+		return true, &config.ArtifactoryDetails{Url: conf.jfrogSupportLogsURL}, nil
+	}
+	details, err := buildRtDetailsFromServerID(serverID)
+	if err != nil {
+		return false, nil, err
+	}
+	return false, details, nil
+}
+
+func buildRtDetailsFromServerID(serverID string) (*config.ArtifactoryDetails, error) {
+	details, err := commands.GetConfig(serverID, false)
 	if err != nil {
 		return nil, err
-	}
-	if details.Url == "" {
-		return nil, errors.New("no server-id was found, or the server-id has no url")
 	}
 	details.Url = clientutils.AddTrailingSlashIfNeeded(details.Url)
 	err = config.CreateInitialRefreshableTokensIfNeeded(details)
