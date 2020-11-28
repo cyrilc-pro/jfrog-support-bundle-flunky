@@ -129,6 +129,7 @@ issues:
     - path: itest_utils\.go
       linters:
         - gomnd
+        - funlen
 #    # https://github.com/go-critic/go-critic/issues/926
 #    - linters:
 #        - gocritic

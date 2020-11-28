@@ -19,7 +19,7 @@ func Test_getDurationFromContext(t *testing.T) {
 			expected: defaultDuration,
 		},
 		{
-			name:     "unparsable duration uses default",
+			name:     "parse error uses default",
 			value:    "30 seconds",
 			expected: defaultDuration,
 		},

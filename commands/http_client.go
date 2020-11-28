@@ -66,3 +66,25 @@ func (c *HTTPClient) GetSupportBundleStatus(bundleID bundleID) (status int, resp
 	}
 	return resp.StatusCode, responseBytes, nil
 }
+
+// nolint: bodyclose
+func (c *HTTPClient) UploadSupportBundle(sbFilePath string, repoKey string, caseNumber string,
+	filename string) (status int, responseBytes []byte, err error) {
+	// TODO add flag for number of retries
+	const retries = 5
+	servicesManager, err := utils.CreateServiceManager(c.rtDetails, false)
+	if err != nil {
+		return undefinedStatusCode, nil, err
+	}
+
+	httpClientDetails := servicesManager.GetConfig().GetServiceDetails().CreateHttpClientDetails()
+
+	url := fmt.Sprintf("%s%s/%s/%s;uploadedBy=support-bundle-flunky", c.rtDetails.Url, repoKey, caseNumber,
+		filename)
+	resp, body, err := servicesManager.Client().UploadFile(sbFilePath, url, "",
+		&httpClientDetails, retries, nil)
+	if err != nil {
+		return undefinedStatusCode, nil, err
+	}
+	return resp.StatusCode, body, err
+}

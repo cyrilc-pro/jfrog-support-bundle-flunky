@@ -14,7 +14,8 @@ func Test_CreateIntegration(t *testing.T) {
 	tests := []IntegrationTest{
 		{
 			Name: "Success with default options",
-			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails) {
+			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails,
+				targetRtDetails *config.ArtifactoryDetails) {
 				conf := supportBundleCommandConfiguration{caseNumber: "foo"}
 				id, err := createSupportBundle(&HTTPClient{rtDetails: rtDetails}, &conf, &defaultOptionsProvider{getDate: time.Now})
 				require.NoError(t, err)
@@ -23,7 +24,8 @@ func Test_CreateIntegration(t *testing.T) {
 		},
 		{
 			Name: "Success with all options disabled",
-			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails) {
+			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails,
+				targetRtDetails *config.ArtifactoryDetails) {
 				conf := supportBundleCommandConfiguration{caseNumber: "foo"}
 				id, err := createSupportBundle(&HTTPClient{rtDetails: rtDetails}, &conf,
 					&promptOptionsProvider{getDate: time.Now, prompter: &prompterStub{
@@ -38,7 +40,8 @@ func Test_CreateIntegration(t *testing.T) {
 		},
 		{
 			Name: "Success with all options enabled",
-			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails) {
+			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails,
+				targetRtDetails *config.ArtifactoryDetails) {
 				conf := supportBundleCommandConfiguration{caseNumber: "foo"}
 				id, err := createSupportBundle(&HTTPClient{rtDetails: rtDetails}, &conf,
 					&promptOptionsProvider{getDate: time.Now, prompter: &prompterStub{
@@ -53,7 +56,8 @@ func Test_CreateIntegration(t *testing.T) {
 		},
 		{
 			Name: "Offline",
-			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails) {
+			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails,
+				targetRtDetails *config.ArtifactoryDetails) {
 				conf := supportBundleCommandConfiguration{caseNumber: "foo"}
 				_, err := createSupportBundle(&HTTPClient{rtDetails: &config.ArtifactoryDetails{
 					Url: "http://unknown.invalid/",
