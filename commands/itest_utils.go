@@ -41,7 +41,7 @@ func RunIntegrationTests(t *testing.T, tests []IntegrationTest) {
 		ExposedPorts: []string{"8082"},
 		WaitingFor: wait.ForHTTP("/artifactory/api/system/ping").
 			WithPort("8082").
-			WithStartupTimeout(3 * time.Minute).
+			WithStartupTimeout(5 * time.Minute).
 			WithPollInterval(10 * time.Second),
 	}
 	rtContainer, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{

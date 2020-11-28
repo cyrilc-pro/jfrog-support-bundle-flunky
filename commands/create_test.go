@@ -2,22 +2,26 @@ package commands
 
 import (
 	"errors"
+	"github.com/google/go-cmp/cmp"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
+	"time"
 )
 
 type createSupportBundleHTTPClientStub struct {
 	statusCode    int
 	response      string
 	err           error
-	actualPayload string
+	actualPayload SupportBundleCreationOptions
 }
 
 func (c *createSupportBundleHTTPClientStub) GetURL() string {
 	return "stub"
 }
 
-func (c *createSupportBundleHTTPClientStub) CreateSupportBundle(payload string) (status int, responseBytes []byte, err error) {
+func (c *createSupportBundleHTTPClientStub) CreateSupportBundle(payload SupportBundleCreationOptions) (status int,
+	responseBytes []byte, err error) {
 	c.actualPayload = payload
 	return c.statusCode, []byte(c.response), c.err
 }
@@ -90,16 +94,24 @@ func Test_CreateSupportBundle(t *testing.T) {
 			conf := &supportBundleCommandConfiguration{
 				caseNumber: "1234",
 			}
-			now := func() string { return "now" }
-			id, err := createSupportBundle(&test.given, conf, now)
+			clock := func() time.Time {
+				timestamp, err := time.Parse(time.RFC3339, "2012-11-01T22:08:41+00:00")
+				require.NoError(t, err)
+				return timestamp
+			}
+			id, err := createSupportBundle(&test.given, conf, &defaultOptionsProvider{getDate: clock})
 			if test.expectErr != "" {
 				require.Error(t, err)
 				require.EqualError(t, err, test.expectErr)
 			} else {
 				require.Equal(t, test.expectID, id)
 			}
-			require.Equal(t, `{"name": "JFrog Support Case number 1234","description": "Generated on now","parameters":{}}`,
-				test.given.actualPayload)
+			assert.Empty(t, cmp.Diff(
+				SupportBundleCreationOptions{
+					Name:        "JFrog Support Case number 1234",
+					Description: "Generated on 2012-11-01T22:08:41Z",
+				},
+				test.given.actualPayload))
 		})
 	}
 }

@@ -10,16 +10,32 @@ type bundleID string
 
 type createSupportBundleHTTPClient interface {
 	GetURL() string
-	CreateSupportBundle(payload string) (int, []byte, error)
+	CreateSupportBundle(payload SupportBundleCreationOptions) (int, []byte, error)
+}
+
+type optionsProvider interface {
+	GetOptions(caseNumber string) (SupportBundleCreationOptions, error)
+}
+
+type defaultOptionsProvider struct {
+	getDate Clock
+}
+
+func (p *defaultOptionsProvider) GetOptions(caseNumber string) (SupportBundleCreationOptions, error) {
+	return SupportBundleCreationOptions{
+		Name:        fmt.Sprintf("JFrog Support Case number %s", caseNumber),
+		Description: fmt.Sprintf("Generated on %s", toString(p.getDate())),
+		Parameters:  nil,
+	}, nil
 }
 
 func createSupportBundle(httpClient createSupportBundleHTTPClient, conf *supportBundleCommandConfiguration,
-	now Clock) (bundleID, error) {
+	optionsProvider optionsProvider) (bundleID, error) {
 	log.Debug(fmt.Sprintf("Create Support Bundle %s on %s", conf.caseNumber, httpClient.GetURL()))
-	request := fmt.Sprintf(`{"name": "JFrog Support Case number %s","description": "Generated on %s","parameters":{}}`,
-		conf.caseNumber,
-		now())
-
+	request, err := optionsProvider.GetOptions(conf.caseNumber)
+	if err != nil {
+		return "", err
+	}
 	responseStatus, body, err := httpClient.CreateSupportBundle(request)
 	if err != nil {
 		return "", err
