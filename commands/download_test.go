@@ -64,7 +64,7 @@ func Test_WaitUntilReady(t *testing.T) {
 			retryInterval: 5 * time.Millisecond,
 			clientStub: &checkStatusClientStub{
 				statusCode: http.StatusOK,
-				payloads:   []string{fmt.Sprintf(body, "pending"), fmt.Sprintf(body, "success")},
+				payloads:   []string{fmt.Sprintf(body, "in progress"), fmt.Sprintf(body, "success")},
 			},
 		},
 		{
@@ -83,7 +83,7 @@ func Test_WaitUntilReady(t *testing.T) {
 			retryInterval: 5 * time.Millisecond,
 			clientStub: &checkStatusClientStub{
 				statusCode: http.StatusInternalServerError,
-				payloads:   []string{fmt.Sprintf(body, "pending")},
+				payloads:   []string{fmt.Sprintf(body, "in progress")},
 			},
 			expectedErrorMessage: "http request failed with: 500 Internal Server Error",
 		},
@@ -93,7 +93,7 @@ func Test_WaitUntilReady(t *testing.T) {
 			retryInterval: 6 * time.Millisecond,
 			clientStub: &checkStatusClientStub{
 				statusCode: http.StatusOK,
-				payloads:   []string{fmt.Sprintf(body, "pending"), fmt.Sprintf(body, "pending")},
+				payloads:   []string{fmt.Sprintf(body, "in progress"), fmt.Sprintf(body, "in progress")},
 			},
 			expectedErrorMessage: "timeout waiting for support bundle to be ready",
 		},

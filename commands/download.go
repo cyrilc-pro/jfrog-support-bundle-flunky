@@ -100,7 +100,7 @@ func waitUntilSupportBundleIsReady(ctx context.Context, client downloadSupportBu
 			}
 
 			log.Debug(fmt.Sprintf("Support bundle status: %s", sbStatus))
-			if sbStatus == "success" {
+			if sbStatus != "in progress" {
 				return nil
 			}
 		}
