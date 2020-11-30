@@ -15,12 +15,12 @@ import (
 
 type downloadSupportBundleHTTPClient interface {
 	GetURL() string
-	DownloadSupportBundle(bundleID bundleID) (*http.Response, error)
-	GetSupportBundleStatus(bundleID bundleID) (int, []byte, error)
+	DownloadSupportBundle(bundleID BundleID) (*http.Response, error)
+	GetSupportBundleStatus(bundleID BundleID) (int, []byte, error)
 }
 
-func downloadSupportBundle(ctx context.Context, client downloadSupportBundleHTTPClient, timeout time.Duration,
-	retryInterval time.Duration, bundleID bundleID) (string, error) {
+func DownloadSupportBundle(ctx context.Context, client downloadSupportBundleHTTPClient, timeout time.Duration,
+	retryInterval time.Duration, bundleID BundleID) (string, error) {
 	log.Debug(fmt.Sprintf("Download Support Bundle %s from %s", bundleID, client.GetURL()))
 
 	err := waitUntilSupportBundleIsReady(ctx, client, retryInterval, timeout, bundleID)
@@ -48,7 +48,7 @@ func downloadSupportBundle(ctx context.Context, client downloadSupportBundleHTTP
 	return tmpFilePath, nil
 }
 
-func downloadSupportBundleAndWriteToFile(client downloadSupportBundleHTTPClient, tmpZipFile *os.File, bundleID bundleID) error {
+func downloadSupportBundleAndWriteToFile(client downloadSupportBundleHTTPClient, tmpZipFile *os.File, bundleID BundleID) error {
 	resp, err := client.DownloadSupportBundle(bundleID)
 	if err != nil {
 		return err
@@ -68,7 +68,7 @@ func downloadSupportBundleAndWriteToFile(client downloadSupportBundleHTTPClient,
 }
 
 func waitUntilSupportBundleIsReady(ctx context.Context, client downloadSupportBundleHTTPClient,
-	retryInterval time.Duration, timeout time.Duration, bundleID bundleID) error {
+	retryInterval time.Duration, timeout time.Duration, bundleID BundleID) error {
 	ctxWithTimeout, cancelCtx := context.WithTimeout(ctx, timeout)
 	defer cancelCtx()
 	ticker := time.NewTicker(retryInterval)
@@ -89,12 +89,12 @@ func waitUntilSupportBundleIsReady(ctx context.Context, client downloadSupportBu
 				return fmt.Errorf("http request failed with: %d %s", statusCode, http.StatusText(statusCode))
 			}
 
-			parsedBody, err := parseJSON(body)
+			parsedBody, err := ParseJSON(body)
 			if err != nil {
 				return err
 			}
 
-			sbStatus, err := parsedBody.getString("status")
+			sbStatus, err := parsedBody.GetString("status")
 			if err != nil {
 				return err
 			}

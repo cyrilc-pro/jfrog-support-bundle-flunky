@@ -1,9 +1,7 @@
 package commands
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/jfrog/jfrog-cli-core/artifactory/commands"
 	"github.com/jfrog/jfrog-cli-core/plugins/components"
 	"github.com/jfrog/jfrog-cli-core/utils/config"
@@ -13,8 +11,8 @@ import (
 )
 
 const (
-	httpContentType     = "Content-Type"
-	httpContentTypeJSON = "application/json"
+	HTTPContentType     = "Content-Type"
+	HTTPContentTypeJSON = "application/json"
 )
 
 // Returns the Artifactory Details of the provided server-id, or the default one.
@@ -40,9 +38,9 @@ func getTimeout(c *components.Context) time.Duration {
 }
 
 func getPromptOptions(c *components.Context) optionsProvider {
-	var p optionsProvider = &defaultOptionsProvider{getDate: time.Now}
+	var p optionsProvider = &DefaultOptionsProvider{GetDate: time.Now}
 	if c.GetBoolFlagValue(promptOptions) {
-		p = &promptOptionsProvider{getDate: time.Now}
+		p = &PromptOptionsProvider{GetDate: time.Now}
 	}
 	return p
 }
@@ -63,28 +61,4 @@ func getDurationOrDefault(value string, defaultValue time.Duration) time.Duratio
 		return defaultValue
 	}
 	return duration
-}
-
-type JSONObject map[string]interface{}
-
-func parseJSON(bytes []byte) (JSONObject, error) {
-	parsedResponse := make(JSONObject)
-	err := json.Unmarshal(bytes, &parsedResponse)
-	return parsedResponse, err
-}
-
-func (o JSONObject) getString(p string) (string, error) {
-	v, ok := o[p]
-	if !ok {
-		return "", fmt.Errorf("property %s not found", p)
-	}
-	s, ok := v.(string)
-	if !ok {
-		return "", fmt.Errorf("property %s is not a string", p)
-	}
-	return s, nil
-}
-
-func getEndpoint(rtDetails *config.ArtifactoryDetails, endpoint string, args ...interface{}) string {
-	return rtDetails.Url + fmt.Sprintf(endpoint, args...)
 }

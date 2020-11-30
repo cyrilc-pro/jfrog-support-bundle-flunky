@@ -8,7 +8,7 @@ import (
 )
 
 //nolint: unparam
-func uploadSupportBundle(ctx *components.Context, conf *supportBundleCommandConfiguration, file string) error {
+func uploadSupportBundle(ctx *components.Context, conf *SupportBundleCommandConfiguration, file string) error {
 	log.Debug(fmt.Sprintf("Upload Support Bundle from %s to https://supportlogs.jfrog.com/", file))
 	log.Debug(fmt.Sprintf("Deleting file: %s", file))
 	return os.Remove(file)

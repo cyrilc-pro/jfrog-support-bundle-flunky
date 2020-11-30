@@ -59,8 +59,8 @@ func getFlags() []components.Flag {
 	}
 }
 
-type supportBundleCommandConfiguration struct {
-	caseNumber string
+type SupportBundleCommandConfiguration struct {
+	CaseNumber string
 }
 
 func supportBundleCmd(componentContext *components.Context) error {
@@ -75,18 +75,18 @@ func supportBundleCmd(componentContext *components.Context) error {
 		return err
 	}
 	log.Debug(fmt.Sprintf("Using: %s...", rtDetails.Url))
-	log.Output(fmt.Sprintf("Case number is %s", conf.caseNumber))
+	log.Output(fmt.Sprintf("Case number is %s", conf.CaseNumber))
 
-	client := &HTTPClient{rtDetails: rtDetails}
+	client := &HTTPClient{RtDetails: rtDetails}
 
 	// 1. Create Support Bundle
-	supportBundle, err := createSupportBundle(client, conf, getPromptOptions(componentContext))
+	supportBundle, err := CreateSupportBundle(client, conf, getPromptOptions(componentContext))
 	if err != nil {
 		return err
 	}
 
 	// 2. Download Support Bundle
-	tmpFile, err := downloadSupportBundle(ctx, client, getTimeout(componentContext), getRetryInterval(componentContext),
+	tmpFile, err := DownloadSupportBundle(ctx, client, getTimeout(componentContext), getRetryInterval(componentContext),
 		supportBundle)
 	if err != nil {
 		return err
@@ -96,11 +96,11 @@ func supportBundleCmd(componentContext *components.Context) error {
 	return uploadSupportBundle(componentContext, conf, tmpFile)
 }
 
-func parseArguments(ctx *components.Context) (*supportBundleCommandConfiguration, error) {
+func parseArguments(ctx *components.Context) (*SupportBundleCommandConfiguration, error) {
 	if len(ctx.Arguments) != 1 {
 		return nil, errors.New("Wrong number of arguments. Expected: 1, " + "Received: " + strconv.Itoa(len(ctx.Arguments)))
 	}
-	var conf = new(supportBundleCommandConfiguration)
-	conf.caseNumber = strings.TrimSpace(ctx.Arguments[0])
+	var conf = new(SupportBundleCommandConfiguration)
+	conf.CaseNumber = strings.TrimSpace(ctx.Arguments[0])
 	return conf, nil
 }

@@ -11,35 +11,35 @@ type Prompter interface {
 	AskThreadDump() (bool, error)
 }
 
-type promptOptionsProvider struct {
-	getDate  func() time.Time
-	prompter Prompter
+type PromptOptionsProvider struct {
+	GetDate  func() time.Time
+	Prompter Prompter
 }
 
-func (p *promptOptionsProvider) GetOptions(caseNumber string) (SupportBundleCreationOptions, error) {
-	options, err := (&defaultOptionsProvider{getDate: p.getDate}).GetOptions(caseNumber)
+func (p *PromptOptionsProvider) GetOptions(caseNumber string) (SupportBundleCreationOptions, error) {
+	options, err := (&DefaultOptionsProvider{GetDate: p.GetDate}).GetOptions(caseNumber)
 	if err != nil {
 		return options, err
 	}
 	options.Parameters = &SupportBundleParameters{Logs: &SupportBundleParametersLogs{}, ThreadDump: &SupportBundleParametersThreadDump{}}
 
-	if options.Parameters.Logs.Include, err = p.prompter.AskIncludeLogs(); err != nil {
+	if options.Parameters.Logs.Include, err = p.Prompter.AskIncludeLogs(); err != nil {
 		return options, err
 	}
-	if options.Parameters.Configuration, err = p.prompter.AskIncludeConfiguration(); err != nil {
+	if options.Parameters.Configuration, err = p.Prompter.AskIncludeConfiguration(); err != nil {
 		return options, err
 	}
-	if options.Parameters.System, err = p.prompter.AskIncludeSystem(); err != nil {
+	if options.Parameters.System, err = p.Prompter.AskIncludeSystem(); err != nil {
 		return options, err
 	}
-	if askThreadDump, err := p.prompter.AskThreadDump(); err != nil {
+	if askThreadDump, err := p.Prompter.AskThreadDump(); err != nil {
 		return options, err
 	} else if askThreadDump {
 		options.Parameters.ThreadDump.Count = 1
 		options.Parameters.ThreadDump.Interval = 0
 	}
 
-	now := p.getDate()
+	now := p.GetDate()
 	yesterday := now.Add(-24 * time.Hour)
 	options.Parameters.Logs.StartDate = yesterday.Format("2006-01-02")
 	options.Parameters.Logs.EndDate = now.Format("2006-01-02")
