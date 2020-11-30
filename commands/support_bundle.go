@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/jfrog/jfrog-cli-core/artifactory/commands"
 	"github.com/jfrog/jfrog-cli-core/plugins/components"
+	"github.com/jfrog/jfrog-cli-core/utils/config"
 	"github.com/jfrog/jfrog-client-go/utils/log"
 	"os"
 	"strconv"
@@ -13,13 +15,12 @@ import (
 )
 
 const (
-	serverID                    = "server-id"
-	targetServerID              = "target-server-id"
-	downloadTimeout             = "download-timeout"
-	retryInterval               = "retry-interval"
-	promptOptions               = "prompt-options"
-	cleanup                     = "cleanup"
-	jfrogSupportLogsArtifactory = "JFrogSupportLogs"
+	serverIDFlag    = "server-id"
+	targetServerID  = "target-server-id"
+	downloadTimeout = "download-timeout"
+	retryInterval   = "retry-interval"
+	promptOptions   = "prompt-options"
+	cleanup         = "cleanup"
 )
 
 func GetSupportBundleCommand() components.Command {
@@ -46,14 +47,13 @@ func getArguments() []components.Argument {
 func getFlags() []components.Flag {
 	return []components.Flag{
 		components.StringFlag{
-			Name:        serverID,
+			Name:        serverIDFlag,
 			Description: "Artifactory server ID configured using the config command.",
 		},
 		components.StringFlag{
 			Name: targetServerID,
 			Description: "Artifactory server ID configured using the config command to be used as the target for " +
 				"uploading the generated Support Bundle.",
-			DefaultValue: jfrogSupportLogsArtifactory,
 		},
 		components.StringFlag{
 			Name:        downloadTimeout,
@@ -80,6 +80,16 @@ type supportBundleCommandConfiguration struct {
 	jfrogSupportLogsURL string
 }
 
+type artifactoryServiceHelper struct{}
+
+func (cw *artifactoryServiceHelper) GetConfig(serverID string, excludeRefreshableTokens bool) (*config.ArtifactoryDetails, error) {
+	return commands.GetConfig(serverID, excludeRefreshableTokens)
+}
+
+func (cw *artifactoryServiceHelper) CreateInitialRefreshableTokensIfNeeded(artifactoryDetails *config.ArtifactoryDetails) error {
+	return config.CreateInitialRefreshableTokensIfNeeded(artifactoryDetails)
+}
+
 func supportBundleCmd(componentContext *components.Context) error {
 	ctx := context.Background()
 	conf, err := parseArguments(componentContext)
@@ -87,14 +97,15 @@ func supportBundleCmd(componentContext *components.Context) error {
 		return err
 	}
 
-	rtDetails, err := getRtDetails(componentContext)
+	artifactoryConfigHelper := &artifactoryServiceHelper{}
+	rtDetails, err := getRtDetails(componentContext, artifactoryConfigHelper)
 	if err != nil {
 		return err
 	}
 	log.Debug(fmt.Sprintf("Using: %s...", rtDetails.Url))
 	log.Output(fmt.Sprintf("Case number is %s", conf.caseNumber))
 
-	_, targetRtDetails, err := getTargetDetails(componentContext, conf)
+	targetRtDetails, err := getTargetDetails(componentContext, artifactoryConfigHelper, conf)
 	if err != nil {
 		return err
 	}
