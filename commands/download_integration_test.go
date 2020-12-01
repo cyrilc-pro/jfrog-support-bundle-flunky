@@ -50,7 +50,7 @@ func assertBundleIsAZipArchive(t *testing.T, bundle string) {
 func setUpSupportBundle(t *testing.T, rtDetails *config.ArtifactoryDetails) bundleID {
 	t.Helper()
 	conf := supportBundleCommandConfiguration{caseNumber: "foo"}
-	supportBundle, err := createSupportBundle(&HTTPClient{rtDetails: rtDetails}, &conf, Now)
+	supportBundle, err := createSupportBundle(&HTTPClient{rtDetails: rtDetails}, &conf, &defaultOptionsProvider{getDate: time.Now})
 	require.NoError(t, err)
 	require.NotEmpty(t, supportBundle)
 	return supportBundle

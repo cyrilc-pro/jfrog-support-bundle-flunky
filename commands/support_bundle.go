@@ -14,6 +14,7 @@ const (
 	serverID        = "server-id"
 	downloadTimeout = "download-timeout"
 	retryInterval   = "retry-interval"
+	promptOptions   = "prompt-options"
 )
 
 func GetSupportBundleCommand() components.Command {
@@ -45,11 +46,15 @@ func getFlags() []components.Flag {
 		},
 		components.StringFlag{
 			Name:        downloadTimeout,
-			Description: "The timeout for download",
+			Description: "The timeout for download.",
 		},
 		components.StringFlag{
 			Name:        retryInterval,
-			Description: "The duration to wait between retries",
+			Description: "The duration to wait between retries.",
+		},
+		components.BoolFlag{
+			Name:        promptOptions,
+			Description: "Ask for support bundle options.",
 		},
 	}
 }
@@ -75,7 +80,7 @@ func supportBundleCmd(componentContext *components.Context) error {
 	client := &HTTPClient{rtDetails: rtDetails}
 
 	// 1. Create Support Bundle
-	supportBundle, err := createSupportBundle(client, conf, Now)
+	supportBundle, err := createSupportBundle(client, conf, getPromptOptions(componentContext))
 	if err != nil {
 		return err
 	}

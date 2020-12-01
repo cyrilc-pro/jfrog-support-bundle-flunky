@@ -39,6 +39,14 @@ func getTimeout(c *components.Context) time.Duration {
 	return getDurationOrDefault(c.GetStringFlagValue(downloadTimeout), defaultTimeout)
 }
 
+func getPromptOptions(c *components.Context) optionsProvider {
+	var p optionsProvider = &defaultOptionsProvider{getDate: time.Now}
+	if c.GetBoolFlagValue(promptOptions) {
+		p = &promptOptionsProvider{getDate: time.Now}
+	}
+	return p
+}
+
 func getRetryInterval(c *components.Context) time.Duration {
 	defaultRetryInterval := 5 * time.Second
 	return getDurationOrDefault(c.GetStringFlagValue(retryInterval), defaultRetryInterval)

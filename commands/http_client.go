@@ -1,9 +1,11 @@
 package commands
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/jfrog/jfrog-cli-core/artifactory/utils"
 	"github.com/jfrog/jfrog-cli-core/utils/config"
+	"github.com/jfrog/jfrog-client-go/utils/log"
 	"net/http"
 )
 
@@ -18,15 +20,20 @@ func (c *HTTPClient) GetURL() string {
 }
 
 // nolint: bodyclose
-func (c *HTTPClient) CreateSupportBundle(requestPayload string) (status int, responseBytes []byte, err error) {
+func (c *HTTPClient) CreateSupportBundle(options SupportBundleCreationOptions) (status int, responseBytes []byte, err error) {
 	servicesManager, err := utils.CreateServiceManager(c.rtDetails, false)
 	if err != nil {
-		return -1, nil, err
+		return undefinedStatusCode, nil, err
 	}
 	httpClientDetails := servicesManager.GetConfig().GetServiceDetails().CreateHttpClientDetails()
 	httpClientDetails.Headers[httpContentType] = httpContentTypeJSON
+	payload, err := json.Marshal(options)
+	if err != nil {
+		return undefinedStatusCode, nil, err
+	}
+	log.Debug(fmt.Sprintf("Sending %s", payload))
 	response, bytes, err := servicesManager.Client().SendPost(getEndpoint(c.rtDetails, "api/system/support/bundle"),
-		[]byte(requestPayload), &httpClientDetails)
+		payload, &httpClientDetails)
 	if err != nil {
 		return undefinedStatusCode, nil, err
 	}

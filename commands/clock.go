@@ -2,8 +2,8 @@ package commands
 
 import "time"
 
-type Clock func() string
+type Clock func() time.Time
 
-func Now() string {
-	return time.Now().Format(time.RFC3339)
+func toString(t time.Time) string {
+	return t.UTC().Format(time.RFC3339)
 }
