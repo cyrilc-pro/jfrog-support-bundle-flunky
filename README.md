@@ -1,3 +1,6 @@
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/cyrilc-pro/jfrog-support-bundle-flunky/Go?style=plastic)
+![Codecov](https://img.shields.io/codecov/c/github/cyrilc-pro/jfrog-support-bundle-flunky?style=plastic)
+
 # JFrog Support Bundle Flunky
 
 ## About this plugin
