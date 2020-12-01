@@ -63,6 +63,7 @@ func Test_UploadIntegration(t *testing.T) {
 func getSupportBundle(t *testing.T) string {
 	dir := os.TempDir()
 	testBundle := filepath.Join(dir, "foo")
+	// nolint: gocritic // octalLiteral
 	err := ioutils.CopyFile("testdata/sb.zip", testBundle, 0644)
 	require.NoError(t, err)
 	return testBundle
