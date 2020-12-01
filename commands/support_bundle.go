@@ -20,7 +20,7 @@ const (
 func GetSupportBundleCommand() components.Command {
 	return components.Command{
 		Name:        "support-bundle",
-		Description: "TBD",
+		Description: `Creates a Support Bundle and uploads it to JFrog Support "dropbox" service`,
 		Aliases:     []string{"sb"},
 		Arguments:   getArguments(),
 		Flags:       getFlags(),

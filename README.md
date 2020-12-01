@@ -17,14 +17,25 @@ Uninstalling the plugin
 `$ jfrog plugin uninstall jfrog-support-bundle-flunky`
 
 ## Usage
-### Commands TBD
-* jfrog-support-bundle-flunky
-    - Arguments:
-        - case - The JFrog Support case number.
-    - Example:
+
+This plugin has a unique command `support-bundle` that:
+1. Creates a Support Bundle on the target Artifactory service
+2. Downloads the Support Bundle locally in a temporary file
+3. Uploads the Support Bundle on JFrog "dropbox" service
+
+**Arguments**
+- `case` - The JFrog Support case number (required).
+
+**Example**
 ```
-$ jfrog jfrog-support-bundle-flunky 1234
+$ jfrog support-bundle 1234
 ```
+
+**Optional flags**
+- `server-id` - The ID of the target Artifactory service in JFrog CLI configuration. Example: `--server-id=my-jfrog-service`
+- `download-timeout` - Timeout of the Support Bundle download. Example: `--download-timeout=10s`
+- `retry-interval` - Waiting time between a failed download attempt and the next attempt. Example: `--retry-interval=3s`
+- `prompt-options` - Ask what is to be included in the created Support Bundle. Example: `--prompt-options` 
 
 ### Environment variables
 None.
