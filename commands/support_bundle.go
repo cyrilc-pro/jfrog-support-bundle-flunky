@@ -134,20 +134,19 @@ func supportBundleCmd(componentContext *components.Context) error {
 	if err != nil {
 		return err
 	}
-	defer deleteSupportBundleArchive(componentContext, supportBundleArchivePath)
+	if shouldCleanup(componentContext) {
+		defer deleteSupportBundleArchive(supportBundleArchivePath)
+	}
 
 	// 3. Upload Support Bundle
-	return UploadSupportBundle(targetClient, conf, supportBundleArchivePath,
-		componentContext.GetStringFlagValue(targetRepo), time.Now)
+	return UploadSupportBundle(targetClient, conf, supportBundleArchivePath, getTargetRepo(componentContext), time.Now)
 }
 
-func deleteSupportBundleArchive(componentContext *components.Context, supportBundleArchivePath string) {
-	if componentContext.GetBoolFlagValue(cleanup) {
-		log.Debug(fmt.Sprintf("Deleting generated support bundle: %s", supportBundleArchivePath))
-		err := os.Remove(supportBundleArchivePath)
-		if err != nil {
-			log.Warn("Error occurred while deleting the generated support bundle archive: %+v", err)
-		}
+func deleteSupportBundleArchive(supportBundleArchivePath string) {
+	log.Debug(fmt.Sprintf("Deleting generated support bundle: %s", supportBundleArchivePath))
+	err := os.Remove(supportBundleArchivePath)
+	if err != nil {
+		log.Warn(fmt.Sprintf("Error occurred while deleting the generated support bundle archive: %+v", err))
 	}
 }
 

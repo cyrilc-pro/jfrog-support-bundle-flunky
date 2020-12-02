@@ -63,6 +63,14 @@ func getTimeout(flagProvider flagValueProvider) time.Duration {
 	return getDurationOrDefault(flagProvider.GetStringFlagValue(downloadTimeout), defaultTimeout)
 }
 
+func shouldCleanup(flagProvider flagValueProvider) bool {
+	return flagProvider.GetBoolFlagValue(cleanup)
+}
+
+func getTargetRepo(flagProvider flagValueProvider) string {
+	return flagProvider.GetStringFlagValue(targetRepo)
+}
+
 func getPromptOptions(flagProvider flagValueProvider) optionsProvider {
 	if flagProvider.GetBoolFlagValue(promptOptions) {
 		return newPromptOptionsProvider()
