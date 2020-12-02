@@ -1,6 +1,7 @@
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/cyrilc-pro/jfrog-support-bundle-flunky/Go?style=plastic)
 ![Codecov](https://img.shields.io/codecov/c/github/cyrilc-pro/jfrog-support-bundle-flunky?style=plastic)
 [![Go Report](https://goreportcard.com/badge/github.com/cyrilc-pro/jfrog-support-bundle-flunky?style=plastic)](https://goreportcard.com/badge/github.com/cyrilc-pro/jfrog-support-bundle-flunky)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/b286b95be72c4aa19de86f8c4a985f34?style=plastic)](https://www.codacy.com/gh/cyrilc-pro/jfrog-support-bundle-flunky/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=cyrilc-pro/jfrog-support-bundle-flunky&amp;utm_campaign=Badge_Grade)
 
 # JFrog Support Bundle Flunky
 
