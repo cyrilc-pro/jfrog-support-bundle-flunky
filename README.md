@@ -57,18 +57,18 @@ jfrog sb 1234
 
 **Optional flags**
 
--  `server-id` - The ID of the target Artifactory service in JFrog CLI configuration (default: use default service). 
+-  `server-id`: The ID of the target Artifactory service in JFrog CLI configuration (default: use default service). 
 Example: `--server-id=my-jfrog-service`.
 
--  `download-timeout` - Timeout of the Support Bundle download (default: 10 min). Example: `--download-timeout=15m`.
+-  `download-timeout`: Timeout of the Support Bundle download (default: 10 min). Example: `--download-timeout=15m`.
 
--  `retry-interval` - Waiting time between a failed download attempt and the next attempt (default: 5 sec). Example: 
+-  `retry-interval`: Waiting time between a failed download attempt and the next attempt (default: 5 sec). Example: 
 `--retry-interval=10s`.
 
--  `prompt-options` - Specify what is to be included in the created Support Bundle (default: use default Support Bundle 
+-  `prompt-options`: Specify what is to be included in the created Support Bundle (default: use default Support Bundle 
 configuration). Example: `--prompt-options`.
 
--  `target-server-id` - The ID of the Artifactory service to which the Support Bundle will be uploaded (default: JFrog 
+-  `target-server-id`: The ID of the Artifactory service to which the Support Bundle will be uploaded (default: JFrog 
 "dropbox" service).
 
 ### Environment variables
