@@ -89,6 +89,7 @@ jobs:
           file: ./coverage.txt
           flags: integration,${{ matrix.artifactory }}
           name: codecov-umbrella
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
@@ -104,3 +105,25 @@ jobs:
           version: v1.33
         env:
           GOROOT: ""
+
+  codacy:
+    name: Codacy Analysis
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Codacy Analysis CLI
+        uses: codacy/codacy-analysis-cli-action@1.1.0
+
+  goreportcard:
+    name: Go Report Card
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Go report card
+        uses: creekorful/goreportcard-action@v1.0
