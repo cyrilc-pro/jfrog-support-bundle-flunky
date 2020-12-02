@@ -123,6 +123,63 @@ func Test_getPromptOptions(t *testing.T) {
 	}
 }
 
+func Test_shouldCleanup(t *testing.T) {
+	tests := []struct {
+		name         string
+		flagProvider *flagProviderStub
+		expected     bool
+	}{
+		{
+			name: "cleanup",
+			flagProvider: &flagProviderStub{
+				boolVal: true,
+			},
+			expected: true,
+		},
+		{
+			name: "do not cleanup",
+			flagProvider: &flagProviderStub{
+				boolVal: false,
+			},
+			expected: false,
+		},
+	}
+
+	for i := range tests {
+		test := tests[i]
+		t.Run(test.name, func(t *testing.T) {
+			result := shouldCleanup(test.flagProvider)
+			assert.Equal(t, test.expected, result)
+			assert.Equal(t, "cleanup", test.flagProvider.receivedFlagName)
+		})
+	}
+}
+
+func Test_getTargetRepo(t *testing.T) {
+	tests := []struct {
+		name         string
+		flagProvider *flagProviderStub
+		expected     string
+	}{
+		{
+			name: "get repo",
+			flagProvider: &flagProviderStub{
+				value: "repo-local",
+			},
+			expected: "repo-local",
+		},
+	}
+
+	for i := range tests {
+		test := tests[i]
+		t.Run(test.name, func(t *testing.T) {
+			result := getTargetRepo(test.flagProvider)
+			assert.Equal(t, test.expected, result)
+			assert.Equal(t, "target-repo", test.flagProvider.receivedFlagName)
+		})
+	}
+}
+
 func Test_getRtDetails(t *testing.T) {
 	expectedDetailsWithCreds := &config.ArtifactoryDetails{
 		Url:      "http://myurl.test/",

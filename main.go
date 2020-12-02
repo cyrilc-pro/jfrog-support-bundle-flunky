@@ -11,13 +11,13 @@ func main() {
 }
 
 func getApp() components.App {
-	app := components.App{}
-	app.Name = "jfrog-support-bundle-flunky"
-	app.Description = "This plugin dutifully creates a Support Bundle on an Artifactory service and obediently " +
-		"uploads it to another Artifactory service."
-	app.Version = "v0.1.0"
-	app.Commands = getCommands()
-	return app
+	return components.App{
+		Name: "jfrog-support-bundle-flunky",
+		Description: "This plugin dutifully creates a Support Bundle on an Artifactory service and obediently " +
+			"uploads it to another Artifactory service.",
+		Version:  "v0.1.0",
+		Commands: getCommands(),
+	}
 }
 
 func getCommands() []components.Command {
