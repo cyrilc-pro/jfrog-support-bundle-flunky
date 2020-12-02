@@ -16,6 +16,13 @@ type promptOptionsProvider struct {
 	prompter Prompter
 }
 
+func newPromptOptionsProvider() optionsProvider {
+	return &promptOptionsProvider{
+		getDate:  time.Now,
+		prompter: &Terminal{},
+	}
+}
+
 func (p *promptOptionsProvider) GetOptions(caseNumber string) (SupportBundleCreationOptions, error) {
 	options, err := (&defaultOptionsProvider{getDate: p.getDate}).GetOptions(caseNumber)
 	if err != nil {
