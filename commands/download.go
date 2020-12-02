@@ -19,6 +19,7 @@ type downloadSupportBundleHTTPClient interface {
 	GetSupportBundleStatus(bundleID BundleID) (int, []byte, error)
 }
 
+// DownloadSupportBundle downloads a Support Bundle.
 func DownloadSupportBundle(ctx context.Context, client downloadSupportBundleHTTPClient, timeout time.Duration,
 	retryInterval time.Duration, bundleID BundleID) (string, error) {
 	log.Debug(fmt.Sprintf("Download Support Bundle %s from %s", bundleID, client.GetURL()))

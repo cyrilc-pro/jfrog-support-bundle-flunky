@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// Type of the ID of a Support Bundle
 type BundleID string
 
 type createSupportBundleHTTPClient interface {
@@ -18,6 +19,7 @@ type optionsProvider interface {
 	GetOptions(caseNumber string) (SupportBundleCreationOptions, error)
 }
 
+// DefaultOptionsProvider provides default options for the creation of a Support Bundle.
 type DefaultOptionsProvider struct {
 	GetDate Clock
 }
@@ -26,6 +28,7 @@ func newDefaultOptionsProvider() optionsProvider {
 	return &DefaultOptionsProvider{GetDate: time.Now}
 }
 
+// GetOptions gets the default options.
 func (p *DefaultOptionsProvider) GetOptions(caseNumber string) (SupportBundleCreationOptions, error) {
 	return SupportBundleCreationOptions{
 		Name:        fmt.Sprintf("JFrog Support Case number %s", caseNumber),
@@ -34,6 +37,7 @@ func (p *DefaultOptionsProvider) GetOptions(caseNumber string) (SupportBundleCre
 	}, nil
 }
 
+// CreateSupportBundle creates a Support Bundle.
 func CreateSupportBundle(httpClient createSupportBundleHTTPClient, conf *SupportBundleCommandConfiguration,
 	optionsProvider optionsProvider) (BundleID, error) {
 	log.Debug(fmt.Sprintf("Create Support Bundle %s on %s", conf.CaseNumber, httpClient.GetURL()))
