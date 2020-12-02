@@ -14,15 +14,21 @@ This plugin helps with generating and exchanging a JFrog Support Bundle with JFr
 
 Installing the latest version:
 
-`$ jfrog plugin install jfrog-support-bundle-flunky`
+``` bash
+ jfrog plugin install jfrog-support-bundle-flunky
+```
 
 Installing a specific version:
 
-`$ jfrog plugin install jfrog-support-bundle-flunky@version`
+``` bash
+jfrog plugin install jfrog-support-bundle-flunky@version`
+```
 
 Uninstalling the plugin
 
-`$ jfrog plugin uninstall jfrog-support-bundle-flunky`
+``` bash
+jfrog plugin uninstall jfrog-support-bundle-flunky`
+```
 
 ## Usage
 
