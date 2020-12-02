@@ -21,6 +21,7 @@ const (
 	retryInterval   = "retry-interval"
 	promptOptions   = "prompt-options"
 	cleanup         = "cleanup"
+	targetRepo      = "target-repo"
 )
 
 func GetSupportBundleCommand() components.Command {
@@ -71,6 +72,11 @@ func getFlags() []components.Flag {
 			Name:         cleanup,
 			Description:  "Delete the support bundle local temp file after upload",
 			DefaultValue: true,
+		},
+		components.StringFlag{
+			Name:         targetRepo,
+			Description:  "The target repository key where the support bundle will be uploaded to",
+			DefaultValue: "logs",
 		},
 	}
 }
@@ -128,7 +134,8 @@ func supportBundleCmd(componentContext *components.Context) error {
 	defer deleteSupportBundleArchive(componentContext, supportBundleArchivePath)
 
 	// 3. Upload Support Bundle
-	return uploadSupportBundle(targetClient, conf, supportBundleArchivePath, time.Now)
+	return uploadSupportBundle(targetClient, conf, supportBundleArchivePath,
+		componentContext.GetStringFlagValue(targetRepo), time.Now)
 }
 
 func deleteSupportBundleArchive(componentContext *components.Context, supportBundleArchivePath string) {
