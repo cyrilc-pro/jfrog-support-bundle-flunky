@@ -89,7 +89,7 @@ func createContainer(ctx context.Context, version string) (testcontainers.Contai
 		ExposedPorts: []string{"8082"},
 		WaitingFor: wait.ForHTTP("/artifactory/api/system/ping").
 			WithPort("8082").
-			WithStartupTimeout(5 * time.Minute).
+			WithStartupTimeout(10 * time.Minute).
 			WithPollInterval(10 * time.Second),
 	}
 	rtContainer, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{

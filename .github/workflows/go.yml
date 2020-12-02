@@ -49,7 +49,7 @@ jobs:
           key: ${{ runner.os }}-build-${{ hashFiles('**/go.sum') }}
 
       - name: Test
-        run: go test -short -timeout 3m -v ./... -coverprofile=coverage.txt -covermode=count
+        run: go test -short -timeout 10m -v ./... -coverprofile=coverage.txt -covermode=count
 
       - name: Upload coverage report to Codecov.io
         uses: codecov/codecov-action@v1.0.15
@@ -80,7 +80,7 @@ jobs:
         env:
           TEST_LICENSE: ${{ secrets.TEST_LICENSE }}
           ARTIFACTORY_VERSION: ${{ matrix.artifactory }}
-        run: go test -run Integration -timeout 10m -v ./test/... -coverprofile=coverage.txt -covermode=count
+        run: go test -run Integration -timeout 30m -v ./test/... -coverprofile=coverage.txt -covermode=count
 
       - name: Upload coverage report to Codecov.io
         uses: codecov/codecov-action@v1.0.15
