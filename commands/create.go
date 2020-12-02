@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// Type of the ID of a Support Bundle
+// BundleID is the ID of a Support Bundle.
 type BundleID string
 
 type createSupportBundleHTTPClient interface {

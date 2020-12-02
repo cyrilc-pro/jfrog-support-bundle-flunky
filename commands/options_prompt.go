@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+// Prompter defines what options can be chosen by the user to configure the Support Bundle.
 type Prompter interface {
 	AskIncludeLogs() (bool, error)
 	AskIncludeSystem() (bool, error)
@@ -11,6 +12,7 @@ type Prompter interface {
 	AskThreadDump() (bool, error)
 }
 
+// PromptOptionsProvider provides Support Bundle creation options based on a Prompter.
 type PromptOptionsProvider struct {
 	GetDate  func() time.Time
 	Prompter Prompter
@@ -23,6 +25,7 @@ func newPromptOptionsProvider() optionsProvider {
 	}
 }
 
+// GetOptions gets the options based on user answers.
 func (p *PromptOptionsProvider) GetOptions(caseNumber string) (SupportBundleCreationOptions, error) {
 	options, err := (&DefaultOptionsProvider{GetDate: p.GetDate}).GetOptions(caseNumber)
 	if err != nil {

@@ -24,6 +24,7 @@ const (
 	targetRepo      = "target-repo"
 )
 
+// GetSupportBundleCommand returns the description of the "support-bundle" command.
 func GetSupportBundleCommand() components.Command {
 	return components.Command{
 		Name:        "support-bundle",
@@ -84,6 +85,7 @@ func getFlags() []components.Flag {
 	}
 }
 
+// SupportBundleCommandConfiguration defines the configuration of the "support-bundle" command.
 type SupportBundleCommandConfiguration struct {
 	CaseNumber          string
 	JfrogSupportLogsURL string

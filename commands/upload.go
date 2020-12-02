@@ -11,6 +11,7 @@ type uploadHTTPClient interface {
 		filename string) (status int, responseBytes []byte, err error)
 }
 
+// UploadSupportBundle uploads a Support Bundle.
 func UploadSupportBundle(client uploadHTTPClient, conf *SupportBundleCommandConfiguration, sbFilePath string,
 	repoKey string, now Clock) error {
 	filename := fmt.Sprintf("%s.zip", toString(now()))
