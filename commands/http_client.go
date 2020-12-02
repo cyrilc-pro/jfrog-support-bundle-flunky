@@ -19,7 +19,7 @@ func (c *HTTPClient) GetURL() string {
 	return c.rtDetails.Url
 }
 
-// nolint: bodyclose
+// nolint: bodyclose // Body is closed by ArtifactoryHttpClient
 func (c *HTTPClient) CreateSupportBundle(options SupportBundleCreationOptions) (status int, responseBytes []byte, err error) {
 	servicesManager, err := utils.CreateServiceManager(c.rtDetails, false)
 	if err != nil {
@@ -52,7 +52,7 @@ func (c *HTTPClient) DownloadSupportBundle(bundleID bundleID) (*http.Response, e
 	return resp, err
 }
 
-// nolint: bodyclose
+// nolint: bodyclose // Body is closed by ArtifactoryHttpClient
 func (c *HTTPClient) GetSupportBundleStatus(bundleID bundleID) (status int, responseBytes []byte, err error) {
 	servicesManager, err := utils.CreateServiceManager(c.rtDetails, false)
 	if err != nil {
@@ -67,7 +67,7 @@ func (c *HTTPClient) GetSupportBundleStatus(bundleID bundleID) (status int, resp
 	return resp.StatusCode, responseBytes, nil
 }
 
-// nolint: bodyclose
+// nolint: bodyclose // Body is closed by ArtifactoryHttpClient
 func (c *HTTPClient) UploadSupportBundle(sbFilePath string, repoKey string, caseNumber string,
 	filename string) (status int, responseBytes []byte, err error) {
 	// TODO add flag for number of retries

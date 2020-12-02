@@ -41,7 +41,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Test
-        run: go test -short -timeout 30m -v ./... -coverprofile=coverage.txt -covermode=count
+        run: go test -short -timeout 3m -v ./... -coverprofile=coverage.txt -covermode=count
 
       - name: Upload coverage report to Codecov.io
         uses: codecov/codecov-action@v1.0.15
@@ -66,14 +66,14 @@ jobs:
         env:
           TEST_LICENSE: ${{ secrets.TEST_LICENSE }}
           ARTIFACTORY_VERSION: ${{ matrix.artifactory }}
-        run: go test -run Integration -timeout 30m -v ./... -coverprofile=coverage.txt -covermode=count
+        run: go test -run Integration -timeout 10m -v ./... -coverprofile=coverage.txt -covermode=count
 
       - name: Upload coverage report to Codecov.io
         uses: codecov/codecov-action@v1.0.15
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.txt
-          flags: integration,7.9
+          flags: integration,${{ matrix.artifactory }}
           name: codecov-umbrella
   lint:
     name: Lint

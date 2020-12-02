@@ -6,6 +6,7 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/jfrog/jfrog-cli-core/utils/config"
 	"github.com/jfrog/jfrog-client-go/utils/log"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -44,8 +45,7 @@ func RunIntegrationTests(t *testing.T, tests []IntegrationTest) {
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
-		_ = rtContainer.Terminate(ctx)
-		_ = targetContainer.Terminate(ctx)
+		terminate(ctx, t, []testcontainers.Container{rtContainer, targetContainer})
 	})
 
 	ip, err := rtContainer.Host(ctx)
@@ -96,6 +96,13 @@ func createContainer(ctx context.Context, version string) (testcontainers.Contai
 		Started:          true,
 	})
 	return rtContainer, err
+}
+
+func terminate(ctx context.Context, t *testing.T, containers []testcontainers.Container) {
+	for _, c := range containers {
+		err := c.Terminate(ctx)
+		assert.NoError(t, err)
+	}
 }
 
 func setUpLicense(ctx context.Context, t *testing.T, licenseKey string, rtDetails *config.ArtifactoryDetails) {
