@@ -11,13 +11,13 @@ type uploadHTTPClient interface {
 		filename string) (status int, responseBytes []byte, err error)
 }
 
-func uploadSupportBundle(client uploadHTTPClient, conf *supportBundleCommandConfiguration, sbFilePath string,
+func UploadSupportBundle(client uploadHTTPClient, conf *SupportBundleCommandConfiguration, sbFilePath string,
 	repoKey string, now Clock) error {
 	filename := fmt.Sprintf("%s.zip", toString(now()))
 	log.Debug(fmt.Sprintf("Uploading Support Bundle %s to repo %s with filename: %s",
 		sbFilePath, repoKey, filename))
 
-	statusCode, respBytes, err := client.UploadSupportBundle(sbFilePath, repoKey, conf.caseNumber, filename)
+	statusCode, respBytes, err := client.UploadSupportBundle(sbFilePath, repoKey, conf.CaseNumber, filename)
 	if err != nil {
 		return err
 	}

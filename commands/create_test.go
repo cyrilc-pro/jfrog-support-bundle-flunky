@@ -31,7 +31,7 @@ func Test_CreateSupportBundle(t *testing.T) {
 		name      string
 		given     createSupportBundleHTTPClientStub
 		expectErr string
-		expectID  bundleID
+		expectID  BundleID
 	}{
 		{
 			name: "success",
@@ -91,15 +91,15 @@ func Test_CreateSupportBundle(t *testing.T) {
 	for i := range tests {
 		test := tests[i]
 		t.Run(test.name, func(t *testing.T) {
-			conf := &supportBundleCommandConfiguration{
-				caseNumber: "1234",
+			conf := &SupportBundleCommandConfiguration{
+				CaseNumber: "1234",
 			}
 			clock := func() time.Time {
 				timestamp, err := time.Parse(time.RFC3339, "2012-11-01T22:08:41+00:00")
 				require.NoError(t, err)
 				return timestamp
 			}
-			id, err := createSupportBundle(&test.given, conf, &defaultOptionsProvider{getDate: clock})
+			id, err := CreateSupportBundle(&test.given, conf, &DefaultOptionsProvider{GetDate: clock})
 			if test.expectErr != "" {
 				require.Error(t, err)
 				require.EqualError(t, err, test.expectErr)

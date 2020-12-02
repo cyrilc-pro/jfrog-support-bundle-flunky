@@ -116,7 +116,7 @@ func Test_getPromptOptions(t *testing.T) {
 		test := tests[i]
 		t.Run(test.name, func(t *testing.T) {
 			provider := getPromptOptions(test.flagProvider)
-			_, isDefault := provider.(*defaultOptionsProvider)
+			_, isDefault := provider.(*DefaultOptionsProvider)
 			assert.Equal(t, test.expectDefault, isDefault)
 			assert.Equal(t, "prompt-options", test.flagProvider.receivedFlagName)
 		})
@@ -196,7 +196,7 @@ func Test_getRtTargetDetails(t *testing.T) {
 		name            string
 		flagProvider    *flagProviderStub
 		configHelper    serviceHelper
-		sbConf          *supportBundleCommandConfiguration
+		sbConf          *SupportBundleCommandConfiguration
 		expectedDetails *config.ArtifactoryDetails
 		expectedError   string
 	}{
@@ -208,8 +208,8 @@ func Test_getRtTargetDetails(t *testing.T) {
 					Url: "supportlogsurl",
 				},
 			},
-			sbConf: &supportBundleCommandConfiguration{
-				jfrogSupportLogsURL: "supportlogsurl",
+			sbConf: &SupportBundleCommandConfiguration{
+				JfrogSupportLogsURL: "supportlogsurl",
 			},
 			expectedDetails: &config.ArtifactoryDetails{
 				Url: "supportlogsurl",
@@ -223,7 +223,7 @@ func Test_getRtTargetDetails(t *testing.T) {
 					Url: "my-artifactory-url",
 				},
 			},
-			sbConf: &supportBundleCommandConfiguration{},
+			sbConf: &SupportBundleCommandConfiguration{},
 			expectedDetails: &config.ArtifactoryDetails{
 				Url: "my-artifactory-url/",
 			},
@@ -279,7 +279,7 @@ func Test_parseJSON(t *testing.T) {
 	for i := range tests {
 		test := tests[i]
 		t.Run(test.name, func(t *testing.T) {
-			result, err := parseJSON([]byte(test.payload))
+			result, err := ParseJSON([]byte(test.payload))
 			if test.expectedError != "" {
 				require.Error(t, err)
 				assert.EqualError(t, err, test.expectedError)
@@ -319,9 +319,9 @@ func Test_getJSONString(t *testing.T) {
 		test := tests[i]
 		t.Run(test.name, func(t *testing.T) {
 			payload := []byte(`{"key":"value", "object_key":{}}`)
-			result, err := parseJSON(payload)
+			result, err := ParseJSON(payload)
 			require.NoError(t, err)
-			got, err := result.getString(test.key)
+			got, err := result.GetString(test.key)
 			if test.expectedError != "" {
 				require.Error(t, err)
 				assert.EqualError(t, err, test.expectedError)

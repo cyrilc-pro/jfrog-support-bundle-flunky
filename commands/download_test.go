@@ -23,17 +23,17 @@ type checkStatusClientStub struct {
 	statusCode       int
 	payloads         []string
 	err              error
-	receivedBundleID bundleID
+	receivedBundleID BundleID
 }
 
-func (cs *checkStatusClientStub) GetSupportBundleStatus(bundleID bundleID) (status int, responseBytes []byte, err error) {
+func (cs *checkStatusClientStub) GetSupportBundleStatus(bundleID BundleID) (status int, responseBytes []byte, err error) {
 	responseBytes = []byte(cs.payloads[cs.count])
 	cs.receivedBundleID = bundleID
 	cs.count++
 	return cs.statusCode, responseBytes, cs.err
 }
 
-func (cs *checkStatusClientStub) DownloadSupportBundle(_ bundleID) (*http.Response, error) {
+func (cs *checkStatusClientStub) DownloadSupportBundle(_ BundleID) (*http.Response, error) {
 	return nil, nil
 }
 
@@ -152,7 +152,7 @@ func Test_WaitUntilReady(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 			}
-			assert.Equal(t, bundleID("bundleID"), test.clientStub.receivedBundleID)
+			assert.Equal(t, BundleID("bundleID"), test.clientStub.receivedBundleID)
 		})
 	}
 }
@@ -160,14 +160,14 @@ func Test_WaitUntilReady(t *testing.T) {
 type downloadClientStub struct {
 	response         *http.Response
 	err              error
-	receivedBundleID bundleID
+	receivedBundleID BundleID
 }
 
-func (dc *downloadClientStub) GetSupportBundleStatus(bundleID) (status int, responseBytes []byte, err error) {
+func (dc *downloadClientStub) GetSupportBundleStatus(BundleID) (status int, responseBytes []byte, err error) {
 	return http.StatusOK, []byte(fmt.Sprintf(body, "success")), nil
 }
 
-func (dc *downloadClientStub) DownloadSupportBundle(bundleID bundleID) (*http.Response, error) {
+func (dc *downloadClientStub) DownloadSupportBundle(bundleID BundleID) (*http.Response, error) {
 	dc.receivedBundleID = bundleID
 	return dc.response, dc.err
 }
@@ -226,7 +226,7 @@ func Test_DownloadSupportBundle(t *testing.T) {
 			ctx := context.Background()
 			timeout := 10 * time.Millisecond
 			retryInterval := 5 * time.Millisecond
-			filePath, err := downloadSupportBundle(ctx, test.clientStub, timeout, retryInterval, "bundleID")
+			filePath, err := DownloadSupportBundle(ctx, test.clientStub, timeout, retryInterval, "bundleID")
 			if test.expectedErrorMessage != "" {
 				require.Error(t, err)
 				assert.EqualError(t, err, test.expectedErrorMessage)
@@ -234,7 +234,7 @@ func Test_DownloadSupportBundle(t *testing.T) {
 				require.NoError(t, err)
 				assert.Contains(t, filePath, "bundleID.zip")
 			}
-			assert.Equal(t, bundleID("bundleID"), test.clientStub.receivedBundleID)
+			assert.Equal(t, BundleID("bundleID"), test.clientStub.receivedBundleID)
 		})
 	}
 }

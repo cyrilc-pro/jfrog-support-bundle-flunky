@@ -30,10 +30,6 @@ jobs:
       - name: Get dependencies
         run: |
           go get -v -t -d ./...
-          if [ -f Gopkg.toml ]; then
-              curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-              dep ensure
-          fi
 
       - name: Build
         run: go build -v ./...
@@ -84,7 +80,7 @@ jobs:
         env:
           TEST_LICENSE: ${{ secrets.TEST_LICENSE }}
           ARTIFACTORY_VERSION: ${{ matrix.artifactory }}
-        run: go test -run Integration -timeout 10m -v ./... -coverprofile=coverage.txt -covermode=count
+        run: go test -run Integration -timeout 10m -v ./test/... -coverprofile=coverage.txt -covermode=count
 
       - name: Upload coverage report to Codecov.io
         uses: codecov/codecov-action@v1.0.15

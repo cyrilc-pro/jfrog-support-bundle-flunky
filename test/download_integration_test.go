@@ -1,10 +1,11 @@
-package commands
+package test
 
 import (
 	"archive/zip"
 	"context"
 	"github.com/jfrog/jfrog-cli-core/utils/config"
 	"github.com/jfrog/jfrog-client-go/utils/io/fileutils"
+	"github.com/jfrog/jfrog-support-bundle-flunky/commands"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -15,13 +16,13 @@ func Test_DownloadIntegration(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping integration test")
 	}
-	tests := []IntegrationTest{
+	tests := []integrationTest{
 		{
 			Name: "Success",
 			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails,
 				targetRtDetails *config.ArtifactoryDetails) {
 				supportBundle := setUpSupportBundle(t, rtDetails)
-				bundle, err := downloadSupportBundle(context.Background(), &HTTPClient{rtDetails: rtDetails},
+				bundle, err := commands.DownloadSupportBundle(context.Background(), &commands.HTTPClient{RtDetails: rtDetails},
 					30*time.Second, 100*time.Millisecond, supportBundle)
 				require.NoError(t, err)
 				assert.Contains(t, bundle, supportBundle)
@@ -33,14 +34,14 @@ func Test_DownloadIntegration(t *testing.T) {
 			Name: "Not found",
 			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails,
 				targetRtDetails *config.ArtifactoryDetails) {
-				bundle, err := downloadSupportBundle(context.Background(), &HTTPClient{rtDetails: rtDetails},
+				bundle, err := commands.DownloadSupportBundle(context.Background(), &commands.HTTPClient{RtDetails: rtDetails},
 					1*time.Second, 100*time.Millisecond, "unknown")
 				require.Empty(t, bundle)
 				assert.EqualError(t, err, "http request failed with: 404 Not Found")
 			},
 		},
 	}
-	RunIntegrationTests(t, tests)
+	runIntegrationTests(t, tests)
 }
 
 func assertBundleIsAZipArchive(t *testing.T, bundle string) {
@@ -49,10 +50,11 @@ func assertBundleIsAZipArchive(t *testing.T, bundle string) {
 	require.NoError(t, r.Close())
 }
 
-func setUpSupportBundle(t *testing.T, rtDetails *config.ArtifactoryDetails) bundleID {
+func setUpSupportBundle(t *testing.T, rtDetails *config.ArtifactoryDetails) commands.BundleID {
 	t.Helper()
-	conf := supportBundleCommandConfiguration{caseNumber: "foo"}
-	supportBundle, err := createSupportBundle(&HTTPClient{rtDetails: rtDetails}, &conf, &defaultOptionsProvider{getDate: time.Now})
+	conf := commands.SupportBundleCommandConfiguration{CaseNumber: "foo"}
+	supportBundle, err := commands.CreateSupportBundle(&commands.HTTPClient{RtDetails: rtDetails}, &conf,
+		&commands.DefaultOptionsProvider{GetDate: time.Now})
 	require.NoError(t, err)
 	require.NotEmpty(t, supportBundle)
 	return supportBundle
