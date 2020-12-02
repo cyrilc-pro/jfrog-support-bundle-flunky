@@ -48,34 +48,37 @@ func getArguments() []components.Argument {
 func getFlags() []components.Flag {
 	return []components.Flag{
 		components.StringFlag{
-			Name:        serverIDFlag,
-			Description: "Artifactory server ID configured using the config command.",
+			Name: serverIDFlag,
+			Description: "Artifactory server ID configured using the config command. " +
+				"If not provided the default configuration will be used.",
 		},
 		components.StringFlag{
 			Name: targetServerID,
 			Description: "Artifactory server ID configured using the config command to be used as the target for " +
-				"uploading the generated Support Bundle.",
+				"uploading the generated Support Bundle. If not provided JFrog support logs will be used.",
 		},
 		components.StringFlag{
-			Name:        downloadTimeout,
-			Description: "The timeout for download.",
+			Name:         downloadTimeout,
+			Description:  "The timeout for download.",
+			DefaultValue: "10m",
 		},
 		components.StringFlag{
-			Name:        retryInterval,
-			Description: "The duration to wait between retries.",
+			Name:         retryInterval,
+			Description:  "The duration to wait between retries.",
+			DefaultValue: "5s",
 		},
 		components.BoolFlag{
 			Name:        promptOptions,
-			Description: "Ask for support bundle options.",
+			Description: "Ask for support bundle options or use Artifactory default options.",
 		},
 		components.BoolFlag{
 			Name:         cleanup,
-			Description:  "Delete the support bundle local temp file after upload",
+			Description:  "Delete the support bundle local temp file after upload.",
 			DefaultValue: true,
 		},
 		components.StringFlag{
 			Name:         targetRepo,
-			Description:  "The target repository key where the support bundle will be uploaded to",
+			Description:  "The target repository key where the support bundle will be uploaded to.",
 			DefaultValue: "logs",
 		},
 	}

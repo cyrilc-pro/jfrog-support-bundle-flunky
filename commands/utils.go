@@ -81,8 +81,8 @@ func getDurationOrDefault(value string, defaultValue time.Duration) time.Duratio
 	}
 	duration, err := time.ParseDuration(value)
 	if err != nil {
-		log.Debug("Error parsing duration: %+v", err)
-		log.Warn("Error parsing duration %s, using default %s", value, defaultValue)
+		log.Debug(fmt.Sprintf("Error parsing duration: %+v", err))
+		log.Warn(fmt.Sprintf("Error parsing duration %s, using default %s", value, defaultValue))
 		return defaultValue
 	}
 	return duration
