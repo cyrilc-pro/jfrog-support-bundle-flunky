@@ -35,15 +35,15 @@ This plugin has a unique command `support-bundle` that:
 3.  Uploads the Support Bundle on JFrog "dropbox" service or to any Artifactory service registered in JFrog CLI 
 configuration
 
-**Arguments**
+### Arguments
 
 -  `support-case` - The JFrog Support case number (required).
 
-**Aliases**
+### Aliases
 
 -  `sb`
 
-**Example**
+### Examples
 
 ``` bash
 jfrog support-bundle 1234
@@ -55,7 +55,7 @@ or
 jfrog sb 1234
 ```
 
-**Optional flags**
+### Optional flags
 
 -  `server-id`: The ID of the target Artifactory service in JFrog CLI configuration (default: use default service). 
 Example: `--server-id=my-jfrog-service`.
