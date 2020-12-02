@@ -1,3 +1,6 @@
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/cyrilc-pro/jfrog-support-bundle-flunky/Go?style=plastic)
+![Codecov](https://img.shields.io/codecov/c/github/cyrilc-pro/jfrog-support-bundle-flunky?style=plastic)
+
 # JFrog Support Bundle Flunky
 
 ## About this plugin
@@ -17,14 +20,38 @@ Uninstalling the plugin
 `$ jfrog plugin uninstall jfrog-support-bundle-flunky`
 
 ## Usage
-### Commands TBD
-* jfrog-support-bundle-flunky
-    - Arguments:
-        - case - The JFrog Support case number.
-    - Example:
+
+This plugin has a unique command `support-bundle` that:
+1. Creates a Support Bundle on the target Artifactory service
+2. Downloads the Support Bundle locally to a temporary file
+3. Uploads the Support Bundle on JFrog "dropbox" service or to any Artifactory service registered in JFrog CLI 
+configuration
+
+**Arguments**
+- `support-case` - The JFrog Support case number (required).
+
+**Aliases**
+- `sb`
+
+**Example**
 ```
-$ jfrog jfrog-support-bundle-flunky 1234
+$ jfrog support-bundle 1234
 ```
+or
+```
+$ jfrog sb 1234
+```
+
+**Optional flags**
+- `server-id` - The ID of the target Artifactory service in JFrog CLI configuration (default: use default service). 
+Example: `--server-id=my-jfrog-service`.
+- `download-timeout` - Timeout of the Support Bundle download (default: 10 min). Example: `--download-timeout=15m`.
+- `retry-interval` - Waiting time between a failed download attempt and the next attempt (default: 5 sec). Example: 
+`--retry-interval=10s`.
+- `prompt-options` - Specify what is to be included in the created Support Bundle (default: use default Support Bundle 
+configuration). Example: `--prompt-options`.
+- `target-server-id` - The ID of the Artifactory service to which the Support Bundle will be uploaded (default: JFrog 
+"dropbox" service).
 
 ### Environment variables
 None.
