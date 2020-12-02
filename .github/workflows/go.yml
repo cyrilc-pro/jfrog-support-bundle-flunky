@@ -21,6 +21,12 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v2
 
+      - name: Cache Go modules
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-build-${{ hashFiles('**/go.sum') }}
+
       - name: Get dependencies
         run: |
           go get -v -t -d ./...
@@ -39,6 +45,12 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v2
+
+      - name: Cache Go modules
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-build-${{ hashFiles('**/go.sum') }}
 
       - name: Test
         run: go test -short -timeout 3m -v ./... -coverprofile=coverage.txt -covermode=count
@@ -61,6 +73,12 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v2
+
+      - name: Cache Go modules
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-build-${{ hashFiles('**/go.sum') }}
 
       - name: Test
         env:
