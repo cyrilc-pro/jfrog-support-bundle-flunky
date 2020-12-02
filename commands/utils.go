@@ -64,11 +64,10 @@ func getTimeout(flagProvider flagValueProvider) time.Duration {
 }
 
 func getPromptOptions(flagProvider flagValueProvider) optionsProvider {
-	var p optionsProvider = &defaultOptionsProvider{getDate: time.Now}
 	if flagProvider.GetBoolFlagValue(promptOptions) {
-		p = &promptOptionsProvider{getDate: time.Now}
+		return newPromptOptionsProvider()
 	}
-	return p
+	return newDefaultOptionsProvider()
 }
 
 func getRetryInterval(flagProvider flagValueProvider) time.Duration {

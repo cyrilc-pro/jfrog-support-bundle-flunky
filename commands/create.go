@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/jfrog/jfrog-client-go/utils/log"
 	"net/http"
+	"time"
 )
 
 type bundleID string
@@ -19,6 +20,10 @@ type optionsProvider interface {
 
 type defaultOptionsProvider struct {
 	getDate Clock
+}
+
+func newDefaultOptionsProvider() optionsProvider {
+	return &defaultOptionsProvider{getDate: time.Now}
 }
 
 func (p *defaultOptionsProvider) GetOptions(caseNumber string) (SupportBundleCreationOptions, error) {
