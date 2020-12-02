@@ -18,17 +18,17 @@ func Test_Prompt(t *testing.T) {
 
 	tests := []struct {
 		name             string
-		stub             prompterStub
+		stub             PrompterStub
 		expectErr        string
 		expectParameters SupportBundleParameters
 	}{
 		{
 			name: "Include all",
-			stub: prompterStub{
-				includeLogs:          true,
-				includeSystem:        true,
-				includeConfiguration: true,
-				includeThreadDump:    true,
+			stub: PrompterStub{
+				IncludeLogs:          true,
+				IncludeSystem:        true,
+				IncludeConfiguration: true,
+				IncludeThreadDump:    true,
 			},
 			expectParameters: SupportBundleParameters{
 				Configuration: true,
@@ -46,8 +46,8 @@ func Test_Prompt(t *testing.T) {
 		},
 		{
 			name: "Include logs only",
-			stub: prompterStub{
-				includeLogs: true,
+			stub: PrompterStub{
+				IncludeLogs: true,
 			},
 			expectParameters: SupportBundleParameters{
 				Configuration: false,
@@ -65,8 +65,8 @@ func Test_Prompt(t *testing.T) {
 		},
 		{
 			name: "Include system only",
-			stub: prompterStub{
-				includeSystem: true,
+			stub: PrompterStub{
+				IncludeSystem: true,
 			},
 			expectParameters: SupportBundleParameters{
 				Configuration: false,
@@ -84,8 +84,8 @@ func Test_Prompt(t *testing.T) {
 		},
 		{
 			name: "Include configuration only",
-			stub: prompterStub{
-				includeConfiguration: true,
+			stub: PrompterStub{
+				IncludeConfiguration: true,
 			},
 			expectParameters: SupportBundleParameters{
 				Configuration: true,
@@ -103,7 +103,7 @@ func Test_Prompt(t *testing.T) {
 		},
 		{
 			name: "Include nothing",
-			stub: prompterStub{},
+			stub: PrompterStub{},
 			expectParameters: SupportBundleParameters{
 				Configuration: false,
 				Logs: &SupportBundleParametersLogs{
@@ -120,7 +120,7 @@ func Test_Prompt(t *testing.T) {
 		},
 		{
 			name: "Error",
-			stub: prompterStub{
+			stub: PrompterStub{
 				err: errors.New("oops"),
 			},
 			expectErr: "oops",
@@ -129,7 +129,7 @@ func Test_Prompt(t *testing.T) {
 	for i := range tests {
 		test := tests[i]
 		t.Run(test.name, func(t *testing.T) {
-			provider := promptOptionsProvider{getDate: clock, prompter: &test.stub}
+			provider := PromptOptionsProvider{GetDate: clock, Prompter: &test.stub}
 			options, err := provider.GetOptions("foo")
 			if test.expectErr != "" {
 				require.Error(t, err)
@@ -146,25 +146,4 @@ func Test_Prompt(t *testing.T) {
 			}
 		})
 	}
-}
-
-type prompterStub struct {
-	includeLogs          bool
-	includeSystem        bool
-	includeConfiguration bool
-	includeThreadDump    bool
-	err                  error
-}
-
-func (s *prompterStub) AskIncludeLogs() (bool, error) {
-	return s.includeLogs, s.err
-}
-func (s *prompterStub) AskIncludeSystem() (bool, error) {
-	return s.includeSystem, s.err
-}
-func (s *prompterStub) AskIncludeConfiguration() (bool, error) {
-	return s.includeConfiguration, s.err
-}
-func (s *prompterStub) AskThreadDump() (bool, error) {
-	return s.includeThreadDump, s.err
 }

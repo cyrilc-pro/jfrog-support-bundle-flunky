@@ -1,2 +1,3 @@
 ignore:
-  - "commands/itest_utils.go"
+  - "test/itest_utils.go"
+  - "command/prompter_stub.go"

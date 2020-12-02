@@ -84,9 +84,9 @@ func getFlags() []components.Flag {
 	}
 }
 
-type supportBundleCommandConfiguration struct {
-	caseNumber          string
-	jfrogSupportLogsURL string
+type SupportBundleCommandConfiguration struct {
+	CaseNumber          string
+	JfrogSupportLogsURL string
 }
 
 type artifactoryServiceHelper struct{}
@@ -112,24 +112,24 @@ func supportBundleCmd(componentContext *components.Context) error {
 		return err
 	}
 	log.Debug(fmt.Sprintf("Using: %s...", rtDetails.Url))
-	log.Output(fmt.Sprintf("Case number is %s", conf.caseNumber))
+	log.Output(fmt.Sprintf("Case number is %s", conf.CaseNumber))
 
 	targetRtDetails, err := getTargetDetails(componentContext, artifactoryConfigHelper, conf)
 	if err != nil {
 		return err
 	}
 
-	client := &HTTPClient{rtDetails: rtDetails}
-	targetClient := &HTTPClient{rtDetails: targetRtDetails}
+	client := &HTTPClient{RtDetails: rtDetails}
+	targetClient := &HTTPClient{RtDetails: targetRtDetails}
 
 	// 1. Create Support Bundle
-	supportBundle, err := createSupportBundle(client, conf, getPromptOptions(componentContext))
+	supportBundle, err := CreateSupportBundle(client, conf, getPromptOptions(componentContext))
 	if err != nil {
 		return err
 	}
 
 	// 2. Download Support Bundle
-	supportBundleArchivePath, err := downloadSupportBundle(ctx, client, getTimeout(componentContext),
+	supportBundleArchivePath, err := DownloadSupportBundle(ctx, client, getTimeout(componentContext),
 		getRetryInterval(componentContext), supportBundle)
 	if err != nil {
 		return err
@@ -137,7 +137,7 @@ func supportBundleCmd(componentContext *components.Context) error {
 	defer deleteSupportBundleArchive(componentContext, supportBundleArchivePath)
 
 	// 3. Upload Support Bundle
-	return uploadSupportBundle(targetClient, conf, supportBundleArchivePath,
+	return UploadSupportBundle(targetClient, conf, supportBundleArchivePath,
 		componentContext.GetStringFlagValue(targetRepo), time.Now)
 }
 
@@ -151,13 +151,13 @@ func deleteSupportBundleArchive(componentContext *components.Context, supportBun
 	}
 }
 
-func parseArguments(ctx *components.Context) (*supportBundleCommandConfiguration, error) {
+func parseArguments(ctx *components.Context) (*SupportBundleCommandConfiguration, error) {
 	if len(ctx.Arguments) != 1 {
 		return nil, errors.New("Wrong number of arguments. Expected: 1, " + "Received: " + strconv.Itoa(len(ctx.Arguments)))
 	}
-	var conf = new(supportBundleCommandConfiguration)
-	conf.caseNumber = strings.TrimSpace(ctx.Arguments[0])
+	var conf = new(SupportBundleCommandConfiguration)
+	conf.CaseNumber = strings.TrimSpace(ctx.Arguments[0])
 	// TODO change this when everything works correctly "https://supportlogs.jfrog.com/" (keep the trailing slash!)
-	conf.jfrogSupportLogsURL = "https://supportlogs.jfrog.com.invalid/"
+	conf.JfrogSupportLogsURL = "https://supportlogs.jfrog.com.invalid/"
 	return conf, nil
 }

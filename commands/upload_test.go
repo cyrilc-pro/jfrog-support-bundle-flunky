@@ -58,9 +58,9 @@ func Test_Upload(t *testing.T) {
 	for i := range tests {
 		test := tests[i]
 		t.Run(test.name, func(t *testing.T) {
-			config := &supportBundleCommandConfiguration{caseNumber: "1234"}
+			config := &SupportBundleCommandConfiguration{CaseNumber: "1234"}
 			now := func() time.Time { return time.Unix(1, 1) }
-			err := uploadSupportBundle(test.clientStub, config, "/some/file", "logsRepo", now)
+			err := UploadSupportBundle(test.clientStub, config, "/some/file", "logsRepo", now)
 			if test.expectedErrorMessage != "" {
 				require.Error(t, err)
 				assert.EqualError(t, err, test.expectedErrorMessage)

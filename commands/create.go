@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-type bundleID string
+type BundleID string
 
 type createSupportBundleHTTPClient interface {
 	GetURL() string
@@ -18,26 +18,26 @@ type optionsProvider interface {
 	GetOptions(caseNumber string) (SupportBundleCreationOptions, error)
 }
 
-type defaultOptionsProvider struct {
-	getDate Clock
+type DefaultOptionsProvider struct {
+	GetDate Clock
 }
 
 func newDefaultOptionsProvider() optionsProvider {
-	return &defaultOptionsProvider{getDate: time.Now}
+	return &DefaultOptionsProvider{GetDate: time.Now}
 }
 
-func (p *defaultOptionsProvider) GetOptions(caseNumber string) (SupportBundleCreationOptions, error) {
+func (p *DefaultOptionsProvider) GetOptions(caseNumber string) (SupportBundleCreationOptions, error) {
 	return SupportBundleCreationOptions{
 		Name:        fmt.Sprintf("JFrog Support Case number %s", caseNumber),
-		Description: fmt.Sprintf("Generated on %s", toString(p.getDate())),
+		Description: fmt.Sprintf("Generated on %s", toString(p.GetDate())),
 		Parameters:  nil,
 	}, nil
 }
 
-func createSupportBundle(httpClient createSupportBundleHTTPClient, conf *supportBundleCommandConfiguration,
-	optionsProvider optionsProvider) (bundleID, error) {
-	log.Debug(fmt.Sprintf("Create Support Bundle %s on %s", conf.caseNumber, httpClient.GetURL()))
-	request, err := optionsProvider.GetOptions(conf.caseNumber)
+func CreateSupportBundle(httpClient createSupportBundleHTTPClient, conf *SupportBundleCommandConfiguration,
+	optionsProvider optionsProvider) (BundleID, error) {
+	log.Debug(fmt.Sprintf("Create Support Bundle %s on %s", conf.CaseNumber, httpClient.GetURL()))
+	request, err := optionsProvider.GetOptions(conf.CaseNumber)
 	if err != nil {
 		return "", err
 	}
@@ -49,13 +49,13 @@ func createSupportBundle(httpClient createSupportBundleHTTPClient, conf *support
 	if responseStatus != http.StatusOK {
 		return "", fmt.Errorf("http request failed with: %d", responseStatus)
 	}
-	json, err := parseJSON(body)
+	json, err := ParseJSON(body)
 	if err != nil {
 		return "", err
 	}
-	id, err := json.getString("id")
+	id, err := json.GetString("id")
 	if err != nil {
 		return "", err
 	}
-	return bundleID(id), nil
+	return BundleID(id), nil
 }

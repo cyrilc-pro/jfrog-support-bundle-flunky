@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	httpContentType     = "Content-Type"
-	httpContentTypeJSON = "application/json"
-	httpContentTypeXML  = "application/xml"
+	HTTPContentType     = "Content-Type"
+	HTTPContentTypeJSON = "application/json"
+	HTTPContentTypeXML  = "application/xml"
 )
 
 type flagValueProvider interface {
@@ -33,10 +33,10 @@ func getRtDetails(flagProvider flagValueProvider, configHelper serviceHelper) (*
 
 // Returns the Artifactory Details of the target-server-id, or JFrog support logs configured ArtifactoryDetails.
 func getTargetDetails(flagProvider flagValueProvider, configProvider serviceHelper,
-	conf *supportBundleCommandConfiguration) (*config.ArtifactoryDetails, error) {
+	conf *SupportBundleCommandConfiguration) (*config.ArtifactoryDetails, error) {
 	serverID := flagProvider.GetStringFlagValue(targetServerID)
 	if serverID == "" {
-		return &config.ArtifactoryDetails{Url: conf.jfrogSupportLogsURL}, nil
+		return &config.ArtifactoryDetails{Url: conf.JfrogSupportLogsURL}, nil
 	}
 	details, err := buildRtDetailsFromServerID(serverID, configProvider)
 	if err != nil {
@@ -90,13 +90,13 @@ func getDurationOrDefault(value string, defaultValue time.Duration) time.Duratio
 
 type JSONObject map[string]interface{}
 
-func parseJSON(bytes []byte) (JSONObject, error) {
+func ParseJSON(bytes []byte) (JSONObject, error) {
 	parsedResponse := make(JSONObject)
 	err := json.Unmarshal(bytes, &parsedResponse)
 	return parsedResponse, err
 }
 
-func (o JSONObject) getString(p string) (string, error) {
+func (o JSONObject) GetString(p string) (string, error) {
 	v, ok := o[p]
 	if !ok {
 		return "", fmt.Errorf("property %s not found", p)
