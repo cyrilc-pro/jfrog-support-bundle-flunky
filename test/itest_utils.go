@@ -6,7 +6,7 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/jfrog/jfrog-cli-core/utils/config"
 	"github.com/jfrog/jfrog-client-go/utils/log"
-	"github.com/jfrog/jfrog-support-bundle-flunky/commands"
+	flunkyhttp "github.com/jfrog/jfrog-support-bundle-flunky/commands/http"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
@@ -132,7 +132,7 @@ func waitForLicenseDeployed(ctx context.Context, t *testing.T, rtDetails *config
 			require.NoError(t, err)
 			_ = resp.Body.Close()
 			t.Logf("Get license: %s %s", resp.Status, string(bytes))
-			json, err := commands.ParseJSON(bytes)
+			json, err := flunkyhttp.ParseJSON(bytes)
 			require.NoError(t, err)
 			licenseType, err := json.GetString("type")
 			require.NoError(t, err)
@@ -149,7 +149,7 @@ func deployTestLicense(ctx context.Context, t *testing.T, licenseKey string, rtD
 	req, err := http.NewRequestWithContext(ctx, "POST", getLicensesEndpointURL(rtDetails), licensePayload)
 	require.NoError(t, err)
 	req.SetBasicAuth(rtDetails.User, rtDetails.Password)
-	req.Header[commands.HTTPContentType] = []string{commands.HTTPContentTypeJSON}
+	req.Header[flunkyhttp.HTTPContentType] = []string{flunkyhttp.HTTPContentTypeJSON}
 	resp, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)
 	_, err = ioutil.ReadAll(resp.Body)
@@ -177,7 +177,7 @@ func createAnonymousPermission(ctx context.Context, t *testing.T, rtDetails *con
 	require.NoError(t, err)
 
 	req.SetBasicAuth(rtDetails.User, rtDetails.Password)
-	req.Header[commands.HTTPContentType] = []string{commands.HTTPContentTypeJSON}
+	req.Header[flunkyhttp.HTTPContentType] = []string{flunkyhttp.HTTPContentTypeJSON}
 	resp, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)
 	defer func() { _ = resp.Body.Close() }()
@@ -190,7 +190,7 @@ func setAnonAccess(ctx context.Context, t *testing.T, rtDetails *config.Artifact
 	getRequest, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	require.NoError(t, err)
 	getRequest.SetBasicAuth(rtDetails.User, rtDetails.Password)
-	getRequest.Header[commands.HTTPContentType] = []string{commands.HTTPContentTypeXML}
+	getRequest.Header[flunkyhttp.HTTPContentType] = []string{flunkyhttp.HTTPContentTypeXML}
 	getResp, err := http.DefaultClient.Do(getRequest)
 	require.NoError(t, err)
 	getRespBody, err := ioutil.ReadAll(getResp.Body)
@@ -202,7 +202,7 @@ func setAnonAccess(ctx context.Context, t *testing.T, rtDetails *config.Artifact
 	postRequest, err := http.NewRequestWithContext(ctx, "POST", url, strings.NewReader(payload))
 	require.NoError(t, err)
 	postRequest.SetBasicAuth(rtDetails.User, rtDetails.Password)
-	postRequest.Header[commands.HTTPContentType] = []string{commands.HTTPContentTypeXML}
+	postRequest.Header[flunkyhttp.HTTPContentType] = []string{flunkyhttp.HTTPContentTypeXML}
 	postResponse, err := http.DefaultClient.Do(postRequest)
 	require.NoError(t, err)
 	postResponseBody, err := ioutil.ReadAll(postResponse.Body)
@@ -218,7 +218,7 @@ func createLogRepository(ctx context.Context, t *testing.T, targetRtDetails *con
 	req, err := http.NewRequestWithContext(ctx, "PUT", url, strings.NewReader(payload))
 	require.NoError(t, err)
 	req.SetBasicAuth(targetRtDetails.User, targetRtDetails.Password)
-	req.Header[commands.HTTPContentType] = []string{commands.HTTPContentTypeJSON}
+	req.Header[flunkyhttp.HTTPContentType] = []string{flunkyhttp.HTTPContentTypeJSON}
 
 	resp, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)

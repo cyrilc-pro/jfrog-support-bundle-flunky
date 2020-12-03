@@ -8,6 +8,8 @@ import (
 	"github.com/jfrog/jfrog-cli-core/plugins/components"
 	"github.com/jfrog/jfrog-cli-core/utils/config"
 	"github.com/jfrog/jfrog-client-go/utils/log"
+	"github.com/jfrog/jfrog-support-bundle-flunky/commands/actions"
+	"github.com/jfrog/jfrog-support-bundle-flunky/commands/http"
 	"os"
 	"strconv"
 	"strings"
@@ -15,13 +17,13 @@ import (
 )
 
 const (
-	serverIDFlag    = "server-id"
-	targetServerID  = "target-server-id"
-	downloadTimeout = "download-timeout"
-	retryInterval   = "retry-interval"
-	promptOptions   = "prompt-options"
-	cleanup         = "cleanup"
-	targetRepo      = "target-repo"
+	serverIDFlag        = "server-id"
+	targetServerIDFlag  = "target-server-id"
+	downloadTimeoutFlag = "download-timeout"
+	retryIntervalFlag   = "retry-interval"
+	promptOptionsFlag   = "prompt-options"
+	cleanupFlag         = "cleanup"
+	targetRepoFlag      = "target-repo"
 )
 
 // GetSupportBundleCommand returns the description of the "support-bundle" command.
@@ -54,41 +56,35 @@ func getFlags() []components.Flag {
 				"If not provided the default configuration will be used.",
 		},
 		components.StringFlag{
-			Name: targetServerID,
+			Name: targetServerIDFlag,
 			Description: "Artifactory server ID configured using the config command to be used as the target for " +
 				"uploading the generated Support Bundle. If not provided JFrog support logs will be used.",
 		},
 		components.StringFlag{
-			Name:         downloadTimeout,
+			Name:         downloadTimeoutFlag,
 			Description:  "The timeout for download.",
 			DefaultValue: "10m",
 		},
 		components.StringFlag{
-			Name:         retryInterval,
+			Name:         retryIntervalFlag,
 			Description:  "The duration to wait between retries.",
 			DefaultValue: "5s",
 		},
 		components.BoolFlag{
-			Name:        promptOptions,
+			Name:        promptOptionsFlag,
 			Description: "Ask for support bundle options or use Artifactory default options.",
 		},
 		components.BoolFlag{
-			Name:         cleanup,
+			Name:         cleanupFlag,
 			Description:  "Delete the support bundle local temp file after upload.",
 			DefaultValue: true,
 		},
 		components.StringFlag{
-			Name:         targetRepo,
+			Name:         targetRepoFlag,
 			Description:  "The target repository key where the support bundle will be uploaded to.",
 			DefaultValue: "logs",
 		},
 	}
-}
-
-// SupportBundleCommandConfiguration defines the configuration of the "support-bundle" command.
-type SupportBundleCommandConfiguration struct {
-	CaseNumber          string
-	JfrogSupportLogsURL string
 }
 
 type artifactoryServiceHelper struct{}
@@ -103,7 +99,7 @@ func (cw *artifactoryServiceHelper) CreateInitialRefreshableTokensIfNeeded(artif
 
 func supportBundleCmd(componentContext *components.Context) error {
 	ctx := context.Background()
-	conf, err := parseArguments(componentContext)
+	caseNumber, err := parseArguments(componentContext)
 	if err != nil {
 		return err
 	}
@@ -114,24 +110,24 @@ func supportBundleCmd(componentContext *components.Context) error {
 		return err
 	}
 	log.Debug(fmt.Sprintf("Using: %s...", rtDetails.Url))
-	log.Output(fmt.Sprintf("Case number is %s", conf.CaseNumber))
+	log.Output(fmt.Sprintf("Case number is %s", caseNumber))
 
-	targetRtDetails, err := getTargetDetails(componentContext, artifactoryConfigHelper, conf)
+	targetRtDetails, err := getTargetDetails(componentContext, artifactoryConfigHelper)
 	if err != nil {
 		return err
 	}
 
-	client := &HTTPClient{RtDetails: rtDetails}
-	targetClient := &HTTPClient{RtDetails: targetRtDetails}
+	client := &http.Client{RtDetails: rtDetails}
+	targetClient := &http.Client{RtDetails: targetRtDetails}
 
 	// 1. Create Support Bundle
-	supportBundle, err := CreateSupportBundle(client, conf, getPromptOptions(componentContext))
+	supportBundle, err := actions.CreateSupportBundle(client, caseNumber, getPromptOptions(componentContext))
 	if err != nil {
 		return err
 	}
 
 	// 2. Download Support Bundle
-	supportBundleArchivePath, err := DownloadSupportBundle(ctx, client, getTimeout(componentContext),
+	supportBundleArchivePath, err := actions.DownloadSupportBundle(ctx, client, getTimeout(componentContext),
 		getRetryInterval(componentContext), supportBundle)
 	if err != nil {
 		return err
@@ -141,7 +137,7 @@ func supportBundleCmd(componentContext *components.Context) error {
 	}
 
 	// 3. Upload Support Bundle
-	return UploadSupportBundle(targetClient, conf, supportBundleArchivePath, getTargetRepo(componentContext), time.Now)
+	return actions.UploadSupportBundle(targetClient, caseNumber, supportBundleArchivePath, getTargetRepo(componentContext), time.Now)
 }
 
 func deleteSupportBundleArchive(supportBundleArchivePath string) {
@@ -152,13 +148,9 @@ func deleteSupportBundleArchive(supportBundleArchivePath string) {
 	}
 }
 
-func parseArguments(ctx *components.Context) (*SupportBundleCommandConfiguration, error) {
+func parseArguments(ctx *components.Context) (actions.CaseNumber, error) {
 	if len(ctx.Arguments) != 1 {
-		return nil, errors.New("Wrong number of arguments. Expected: 1, " + "Received: " + strconv.Itoa(len(ctx.Arguments)))
+		return "", errors.New("Wrong number of arguments. Expected: 1, " + "Received: " + strconv.Itoa(len(ctx.Arguments)))
 	}
-	var conf = new(SupportBundleCommandConfiguration)
-	conf.CaseNumber = strings.TrimSpace(ctx.Arguments[0])
-	// TODO change this when everything works correctly "https://supportlogs.jfrog.com/" (keep the trailing slash!)
-	conf.JfrogSupportLogsURL = "https://supportlogs.jfrog.com.invalid/"
-	return conf, nil
+	return actions.CaseNumber(strings.TrimSpace(ctx.Arguments[0])), nil
 }

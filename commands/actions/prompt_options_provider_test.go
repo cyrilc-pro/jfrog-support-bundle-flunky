@@ -1,8 +1,9 @@
-package commands
+package actions
 
 import (
 	"errors"
 	"github.com/google/go-cmp/cmp"
+	"github.com/jfrog/jfrog-support-bundle-flunky/commands/http"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -20,7 +21,7 @@ func Test_Prompt(t *testing.T) {
 		name             string
 		stub             PrompterStub
 		expectErr        string
-		expectParameters SupportBundleParameters
+		expectParameters http.SupportBundleParameters
 	}{
 		{
 			name: "Include all",
@@ -30,15 +31,15 @@ func Test_Prompt(t *testing.T) {
 				IncludeConfiguration: true,
 				IncludeThreadDump:    true,
 			},
-			expectParameters: SupportBundleParameters{
+			expectParameters: http.SupportBundleParameters{
 				Configuration: true,
-				Logs: &SupportBundleParametersLogs{
+				Logs: &http.SupportBundleParametersLogs{
 					Include:   true,
 					StartDate: "2012-10-31",
 					EndDate:   "2012-11-01",
 				},
 				System: true,
-				ThreadDump: &SupportBundleParametersThreadDump{
+				ThreadDump: &http.SupportBundleParametersThreadDump{
 					Count:    1,
 					Interval: 0,
 				},
@@ -49,15 +50,15 @@ func Test_Prompt(t *testing.T) {
 			stub: PrompterStub{
 				IncludeLogs: true,
 			},
-			expectParameters: SupportBundleParameters{
+			expectParameters: http.SupportBundleParameters{
 				Configuration: false,
-				Logs: &SupportBundleParametersLogs{
+				Logs: &http.SupportBundleParametersLogs{
 					Include:   true,
 					StartDate: "2012-10-31",
 					EndDate:   "2012-11-01",
 				},
 				System: false,
-				ThreadDump: &SupportBundleParametersThreadDump{
+				ThreadDump: &http.SupportBundleParametersThreadDump{
 					Count:    0,
 					Interval: 0,
 				},
@@ -68,15 +69,15 @@ func Test_Prompt(t *testing.T) {
 			stub: PrompterStub{
 				IncludeSystem: true,
 			},
-			expectParameters: SupportBundleParameters{
+			expectParameters: http.SupportBundleParameters{
 				Configuration: false,
-				Logs: &SupportBundleParametersLogs{
+				Logs: &http.SupportBundleParametersLogs{
 					Include:   false,
 					StartDate: "2012-10-31",
 					EndDate:   "2012-11-01",
 				},
 				System: true,
-				ThreadDump: &SupportBundleParametersThreadDump{
+				ThreadDump: &http.SupportBundleParametersThreadDump{
 					Count:    0,
 					Interval: 0,
 				},
@@ -87,15 +88,15 @@ func Test_Prompt(t *testing.T) {
 			stub: PrompterStub{
 				IncludeConfiguration: true,
 			},
-			expectParameters: SupportBundleParameters{
+			expectParameters: http.SupportBundleParameters{
 				Configuration: true,
-				Logs: &SupportBundleParametersLogs{
+				Logs: &http.SupportBundleParametersLogs{
 					Include:   false,
 					StartDate: "2012-10-31",
 					EndDate:   "2012-11-01",
 				},
 				System: false,
-				ThreadDump: &SupportBundleParametersThreadDump{
+				ThreadDump: &http.SupportBundleParametersThreadDump{
 					Count:    0,
 					Interval: 0,
 				},
@@ -104,15 +105,15 @@ func Test_Prompt(t *testing.T) {
 		{
 			name: "Include nothing",
 			stub: PrompterStub{},
-			expectParameters: SupportBundleParameters{
+			expectParameters: http.SupportBundleParameters{
 				Configuration: false,
-				Logs: &SupportBundleParametersLogs{
+				Logs: &http.SupportBundleParametersLogs{
 					Include:   false,
 					StartDate: "2012-10-31",
 					EndDate:   "2012-11-01",
 				},
 				System: false,
-				ThreadDump: &SupportBundleParametersThreadDump{
+				ThreadDump: &http.SupportBundleParametersThreadDump{
 					Count:    0,
 					Interval: 0,
 				},
@@ -137,7 +138,7 @@ func Test_Prompt(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				assert.Empty(t, cmp.Diff(
-					SupportBundleCreationOptions{
+					http.SupportBundleCreationOptions{
 						Name:        "JFrog Support Case number foo",
 						Description: "Generated on 2012-11-01T22:08:41Z",
 						Parameters:  &test.expectParameters,

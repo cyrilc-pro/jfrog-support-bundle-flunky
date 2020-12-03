@@ -2,7 +2,8 @@ package test
 
 import (
 	"github.com/jfrog/jfrog-cli-core/utils/config"
-	"github.com/jfrog/jfrog-support-bundle-flunky/commands"
+	"github.com/jfrog/jfrog-support-bundle-flunky/commands/actions"
+	"github.com/jfrog/jfrog-support-bundle-flunky/commands/http"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
@@ -17,7 +18,7 @@ func Test_CreateIntegration(t *testing.T) {
 			Name: "Success with default options",
 			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails,
 				targetRtDetails *config.ArtifactoryDetails) {
-				id, err := createSupportBundle(rtDetails, commands.NewDefaultOptionsProvider())
+				id, err := createSupportBundle(rtDetails, actions.NewDefaultOptionsProvider())
 				require.NoError(t, err)
 				require.NotEmpty(t, id)
 			},
@@ -45,7 +46,7 @@ func Test_CreateIntegration(t *testing.T) {
 			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails,
 				targetRtDetails *config.ArtifactoryDetails) {
 				_, err := createSupportBundle(&config.ArtifactoryDetails{Url: "http://unknown.invalid/"},
-					commands.NewDefaultOptionsProvider())
+					actions.NewDefaultOptionsProvider())
 				require.Error(t, err)
 				// exact message depends on OS
 				require.Contains(t, err.Error(), "dial tcp:")
@@ -55,8 +56,8 @@ func Test_CreateIntegration(t *testing.T) {
 	runIntegrationTests(t, tests)
 }
 
-func newPromptOptionsProviderStub(includeAll bool) *commands.PromptOptionsProvider {
-	return &commands.PromptOptionsProvider{GetDate: time.Now, Prompter: &commands.PrompterStub{
+func newPromptOptionsProviderStub(includeAll bool) *actions.PromptOptionsProvider {
+	return &actions.PromptOptionsProvider{GetDate: time.Now, Prompter: &actions.PrompterStub{
 		IncludeLogs:          includeAll,
 		IncludeSystem:        includeAll,
 		IncludeConfiguration: includeAll,
@@ -64,8 +65,7 @@ func newPromptOptionsProviderStub(includeAll bool) *commands.PromptOptionsProvid
 	}}
 }
 
-func createSupportBundle(rtDetails *config.ArtifactoryDetails, optionsProvider commands.OptionsProvider) (
-	commands.BundleID, error) {
-	conf := commands.SupportBundleCommandConfiguration{CaseNumber: "foo"}
-	return commands.CreateSupportBundle(&commands.HTTPClient{RtDetails: rtDetails}, &conf, optionsProvider)
+func createSupportBundle(rtDetails *config.ArtifactoryDetails, optionsProvider actions.OptionsProvider) (
+	actions.BundleID, error) {
+	return actions.CreateSupportBundle(&http.Client{RtDetails: rtDetails}, "foo", optionsProvider)
 }

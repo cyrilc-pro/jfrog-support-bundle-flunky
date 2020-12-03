@@ -1,4 +1,4 @@
-package commands
+package actions
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/jfrog/jfrog-client-go/utils/io/fileutils"
 	"github.com/jfrog/jfrog-client-go/utils/log"
+	flunkyhttp "github.com/jfrog/jfrog-support-bundle-flunky/commands/http"
 	"io"
 	"net/http"
 	"os"
@@ -15,8 +16,8 @@ import (
 
 type downloadSupportBundleHTTPClient interface {
 	GetURL() string
-	DownloadSupportBundle(bundleID BundleID) (*http.Response, error)
-	GetSupportBundleStatus(bundleID BundleID) (int, []byte, error)
+	DownloadSupportBundle(bundleID string) (*http.Response, error)
+	GetSupportBundleStatus(bundleID string) (int, []byte, error)
 }
 
 // DownloadSupportBundle downloads a Support Bundle.
@@ -50,7 +51,7 @@ func DownloadSupportBundle(ctx context.Context, client downloadSupportBundleHTTP
 }
 
 func downloadSupportBundleAndWriteToFile(client downloadSupportBundleHTTPClient, tmpZipFile *os.File, bundleID BundleID) error {
-	resp, err := client.DownloadSupportBundle(bundleID)
+	resp, err := client.DownloadSupportBundle(string(bundleID))
 	if err != nil {
 		return err
 	}
@@ -79,23 +80,7 @@ func waitUntilSupportBundleIsReady(ctx context.Context, client downloadSupportBu
 		case <-ctxWithTimeout.Done():
 			return errors.New("timeout waiting for support bundle to be ready")
 		case <-ticker.C:
-			log.Debug(fmt.Sprintf("Attempting to get status for support bundle %s", bundleID))
-			statusCode, body, err := client.GetSupportBundleStatus(bundleID)
-			if err != nil {
-				return err
-			}
-
-			log.Debug(fmt.Sprintf("Got HTTP response status: %d", statusCode))
-			if statusCode != http.StatusOK {
-				return fmt.Errorf("http request failed with: %d %s", statusCode, http.StatusText(statusCode))
-			}
-
-			parsedBody, err := ParseJSON(body)
-			if err != nil {
-				return err
-			}
-
-			sbStatus, err := parsedBody.GetString("status")
+			sbStatus, err := getBundleStatus(bundleID, client)
 			if err != nil {
 				return err
 			}
@@ -106,6 +91,30 @@ func waitUntilSupportBundleIsReady(ctx context.Context, client downloadSupportBu
 			}
 		}
 	}
+}
+
+func getBundleStatus(bundleID BundleID, client downloadSupportBundleHTTPClient) (string, error) {
+	log.Debug(fmt.Sprintf("Attempting to get status for support bundle %s", bundleID))
+	statusCode, body, err := client.GetSupportBundleStatus(string(bundleID))
+	if err != nil {
+		return "", err
+	}
+
+	log.Debug(fmt.Sprintf("Got HTTP response status: %d", statusCode))
+	if statusCode != http.StatusOK {
+		return "", fmt.Errorf("http request failed with: %d %s", statusCode, http.StatusText(statusCode))
+	}
+
+	parsedBody, err := flunkyhttp.ParseJSON(body)
+	if err != nil {
+		return "", err
+	}
+
+	sbStatus, err := parsedBody.GetString("status")
+	if err != nil {
+		return "", err
+	}
+	return sbStatus, nil
 }
 
 func handleClose(closer io.Closer) {

@@ -1,4 +1,4 @@
-package commands
+package actions
 
 // PrompterStub is a stub for a Prompter, used for tests.
 type PrompterStub struct {

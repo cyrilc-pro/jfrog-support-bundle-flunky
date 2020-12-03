@@ -1,8 +1,9 @@
-package commands
+package actions
 
 import (
 	"errors"
 	"github.com/google/go-cmp/cmp"
+	"github.com/jfrog/jfrog-support-bundle-flunky/commands/http"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -13,14 +14,14 @@ type createSupportBundleHTTPClientStub struct {
 	statusCode    int
 	response      string
 	err           error
-	actualPayload SupportBundleCreationOptions
+	actualPayload http.SupportBundleCreationOptions
 }
 
 func (c *createSupportBundleHTTPClientStub) GetURL() string {
 	return "stub"
 }
 
-func (c *createSupportBundleHTTPClientStub) CreateSupportBundle(payload SupportBundleCreationOptions) (status int,
+func (c *createSupportBundleHTTPClientStub) CreateSupportBundle(payload http.SupportBundleCreationOptions) (status int,
 	responseBytes []byte, err error) {
 	c.actualPayload = payload
 	return c.statusCode, []byte(c.response), c.err
@@ -91,15 +92,13 @@ func Test_CreateSupportBundle(t *testing.T) {
 	for i := range tests {
 		test := tests[i]
 		t.Run(test.name, func(t *testing.T) {
-			conf := &SupportBundleCommandConfiguration{
-				CaseNumber: "1234",
-			}
+			caseNumber := CaseNumber("1234")
 			clock := func() time.Time {
 				timestamp, err := time.Parse(time.RFC3339, "2012-11-01T22:08:41+00:00")
 				require.NoError(t, err)
 				return timestamp
 			}
-			id, err := CreateSupportBundle(&test.given, conf, &DefaultOptionsProvider{getDate: clock})
+			id, err := CreateSupportBundle(&test.given, caseNumber, &DefaultOptionsProvider{getDate: clock})
 			if test.expectErr != "" {
 				require.Error(t, err)
 				require.EqualError(t, err, test.expectErr)
@@ -107,7 +106,7 @@ func Test_CreateSupportBundle(t *testing.T) {
 				require.Equal(t, test.expectID, id)
 			}
 			assert.Empty(t, cmp.Diff(
-				SupportBundleCreationOptions{
+				http.SupportBundleCreationOptions{
 					Name:        "JFrog Support Case number 1234",
 					Description: "Generated on 2012-11-01T22:08:41Z",
 				},

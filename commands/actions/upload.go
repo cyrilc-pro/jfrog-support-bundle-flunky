@@ -1,4 +1,4 @@
-package commands
+package actions
 
 import (
 	"fmt"
@@ -7,18 +7,18 @@ import (
 )
 
 type uploadHTTPClient interface {
-	UploadSupportBundle(sbFilePath string, repoKey string, caseNumber string,
+	UploadSupportBundle(sbFilePath string, repoKey string, supportCaseDirectory string,
 		filename string) (status int, responseBytes []byte, err error)
 }
 
 // UploadSupportBundle uploads a Support Bundle.
-func UploadSupportBundle(client uploadHTTPClient, conf *SupportBundleCommandConfiguration, sbFilePath string,
+func UploadSupportBundle(client uploadHTTPClient, caseNumber CaseNumber, sbFilePath string,
 	repoKey string, now Clock) error {
-	filename := fmt.Sprintf("%s.zip", toString(now()))
+	filename := fmt.Sprintf("%s.zip", formattedString(now()))
 	log.Debug(fmt.Sprintf("Uploading Support Bundle %s to repo %s with filename: %s",
 		sbFilePath, repoKey, filename))
 
-	statusCode, respBytes, err := client.UploadSupportBundle(sbFilePath, repoKey, conf.CaseNumber, filename)
+	statusCode, respBytes, err := client.UploadSupportBundle(sbFilePath, repoKey, string(caseNumber), filename)
 	if err != nil {
 		return err
 	}
