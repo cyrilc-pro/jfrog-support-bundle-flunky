@@ -54,7 +54,7 @@ func setUpSupportBundle(t *testing.T, rtDetails *config.ArtifactoryDetails) comm
 	t.Helper()
 	conf := commands.SupportBundleCommandConfiguration{CaseNumber: "foo"}
 	supportBundle, err := commands.CreateSupportBundle(&commands.HTTPClient{RtDetails: rtDetails}, &conf,
-		&commands.DefaultOptionsProvider{GetDate: time.Now})
+		commands.NewDefaultOptionsProvider())
 	require.NoError(t, err)
 	require.NotEmpty(t, supportBundle)
 	return supportBundle

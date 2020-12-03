@@ -99,7 +99,7 @@ func Test_CreateSupportBundle(t *testing.T) {
 				require.NoError(t, err)
 				return timestamp
 			}
-			id, err := CreateSupportBundle(&test.given, conf, &DefaultOptionsProvider{GetDate: clock})
+			id, err := CreateSupportBundle(&test.given, conf, &DefaultOptionsProvider{getDate: clock})
 			if test.expectErr != "" {
 				require.Error(t, err)
 				require.EqualError(t, err, test.expectErr)

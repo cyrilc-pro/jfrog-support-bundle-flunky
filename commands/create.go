@@ -15,31 +15,33 @@ type createSupportBundleHTTPClient interface {
 	CreateSupportBundle(payload SupportBundleCreationOptions) (int, []byte, error)
 }
 
-type optionsProvider interface {
+// OptionsProvider provides options for the creation of a Support Bundle.
+type OptionsProvider interface {
 	GetOptions(caseNumber string) (SupportBundleCreationOptions, error)
 }
 
 // DefaultOptionsProvider provides default options for the creation of a Support Bundle.
 type DefaultOptionsProvider struct {
-	GetDate Clock
+	getDate Clock
 }
 
-func newDefaultOptionsProvider() optionsProvider {
-	return &DefaultOptionsProvider{GetDate: time.Now}
+// NewDefaultOptionsProvider creates a new DefaultOptionsProvider
+func NewDefaultOptionsProvider() OptionsProvider {
+	return &DefaultOptionsProvider{getDate: time.Now}
 }
 
 // GetOptions gets the default options.
 func (p *DefaultOptionsProvider) GetOptions(caseNumber string) (SupportBundleCreationOptions, error) {
 	return SupportBundleCreationOptions{
 		Name:        fmt.Sprintf("JFrog Support Case number %s", caseNumber),
-		Description: fmt.Sprintf("Generated on %s", toString(p.GetDate())),
+		Description: fmt.Sprintf("Generated on %s", toString(p.getDate())),
 		Parameters:  nil,
 	}, nil
 }
 
 // CreateSupportBundle creates a Support Bundle.
 func CreateSupportBundle(httpClient createSupportBundleHTTPClient, conf *SupportBundleCommandConfiguration,
-	optionsProvider optionsProvider) (BundleID, error) {
+	optionsProvider OptionsProvider) (BundleID, error) {
 	log.Debug(fmt.Sprintf("Create Support Bundle %s on %s", conf.CaseNumber, httpClient.GetURL()))
 	request, err := optionsProvider.GetOptions(conf.CaseNumber)
 	if err != nil {

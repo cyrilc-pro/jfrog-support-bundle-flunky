@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/jfrog/jfrog-cli-core/artifactory/utils"
 	"github.com/jfrog/jfrog-cli-core/utils/config"
+	"github.com/jfrog/jfrog-client-go/artifactory"
+	"github.com/jfrog/jfrog-client-go/utils/io/httputils"
 	"github.com/jfrog/jfrog-client-go/utils/log"
 	"net/http"
 )
@@ -24,11 +26,10 @@ func (c *HTTPClient) GetURL() string {
 // CreateSupportBundle creates a Support Bundle.
 // nolint: bodyclose // Body is closed by ArtifactoryHttpClient
 func (c *HTTPClient) CreateSupportBundle(options SupportBundleCreationOptions) (status int, responseBytes []byte, err error) {
-	servicesManager, err := utils.CreateServiceManager(c.RtDetails, false)
+	servicesManager, httpClientDetails, err := c.createArtifactoryServicesManager()
 	if err != nil {
 		return undefinedStatusCode, nil, err
 	}
-	httpClientDetails := servicesManager.GetConfig().GetServiceDetails().CreateHttpClientDetails()
 	httpClientDetails.Headers[HTTPContentType] = HTTPContentTypeJSON
 	payload, err := json.Marshal(options)
 	if err != nil {
@@ -46,11 +47,10 @@ func (c *HTTPClient) CreateSupportBundle(options SupportBundleCreationOptions) (
 // DownloadSupportBundle downloads a Support Bundle. This returns the support bundle in the response.Body.
 // Closing the body is the caller's responsibility.
 func (c *HTTPClient) DownloadSupportBundle(bundleID BundleID) (*http.Response, error) {
-	servicesManager, err := utils.CreateServiceManager(c.RtDetails, false)
+	servicesManager, httpClientDetails, err := c.createArtifactoryServicesManager()
 	if err != nil {
 		return nil, err
 	}
-	httpClientDetails := servicesManager.GetConfig().GetServiceDetails().CreateHttpClientDetails()
 	downloadSbURL := fmt.Sprintf("%sapi/system/support/bundle/%s/archive", c.GetURL(), bundleID)
 	resp, _, _, err := servicesManager.Client().Send("GET", downloadSbURL, nil, true, false, &httpClientDetails)
 	return resp, err
@@ -59,11 +59,10 @@ func (c *HTTPClient) DownloadSupportBundle(bundleID BundleID) (*http.Response, e
 // GetSupportBundleStatus gets the status of a Support Bundle creation process.
 // nolint: bodyclose // Body is closed by ArtifactoryHttpClient
 func (c *HTTPClient) GetSupportBundleStatus(bundleID BundleID) (status int, responseBytes []byte, err error) {
-	servicesManager, err := utils.CreateServiceManager(c.RtDetails, false)
+	servicesManager, httpClientDetails, err := c.createArtifactoryServicesManager()
 	if err != nil {
 		return undefinedStatusCode, nil, err
 	}
-	httpClientDetails := servicesManager.GetConfig().GetServiceDetails().CreateHttpClientDetails()
 	sbStatusURL := fmt.Sprintf("%sapi/system/support/bundle/%s", c.GetURL(), bundleID)
 	resp, responseBytes, _, err := servicesManager.Client().SendGet(sbStatusURL, true, &httpClientDetails)
 	if err != nil {
@@ -78,12 +77,10 @@ func (c *HTTPClient) UploadSupportBundle(sbFilePath string, repoKey string, case
 	filename string) (status int, responseBytes []byte, err error) {
 	// TODO add flag for number of retries
 	const retries = 5
-	servicesManager, err := utils.CreateServiceManager(c.RtDetails, false)
+	servicesManager, httpClientDetails, err := c.createArtifactoryServicesManager()
 	if err != nil {
 		return undefinedStatusCode, nil, err
 	}
-
-	httpClientDetails := servicesManager.GetConfig().GetServiceDetails().CreateHttpClientDetails()
 
 	url := fmt.Sprintf("%s%s/%s/%s;uploadedBy=support-bundle-flunky", c.RtDetails.Url, repoKey, caseNumber,
 		filename)
@@ -93,4 +90,14 @@ func (c *HTTPClient) UploadSupportBundle(sbFilePath string, repoKey string, case
 		return undefinedStatusCode, nil, err
 	}
 	return resp.StatusCode, body, err
+}
+
+func (c *HTTPClient) createArtifactoryServicesManager() (artifactory.ArtifactoryServicesManager,
+	httputils.HttpClientDetails, error) {
+	servicesManager, err := utils.CreateServiceManager(c.RtDetails, false)
+	if err != nil {
+		return nil, httputils.HttpClientDetails{}, err
+	}
+	httpClientDetails := servicesManager.GetConfig().GetServiceDetails().CreateHttpClientDetails()
+	return servicesManager, httpClientDetails, nil
 }

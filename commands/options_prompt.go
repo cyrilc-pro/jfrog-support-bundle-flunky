@@ -18,7 +18,7 @@ type PromptOptionsProvider struct {
 	Prompter Prompter
 }
 
-func newPromptOptionsProvider() optionsProvider {
+func newPromptOptionsProvider() OptionsProvider {
 	return &PromptOptionsProvider{
 		GetDate:  time.Now,
 		Prompter: &Terminal{},
@@ -27,7 +27,7 @@ func newPromptOptionsProvider() optionsProvider {
 
 // GetOptions gets the options based on user answers.
 func (p *PromptOptionsProvider) GetOptions(caseNumber string) (SupportBundleCreationOptions, error) {
-	options, err := (&DefaultOptionsProvider{GetDate: p.GetDate}).GetOptions(caseNumber)
+	options, err := (&DefaultOptionsProvider{getDate: p.GetDate}).GetOptions(caseNumber)
 	if err != nil {
 		return options, err
 	}
