@@ -5,7 +5,8 @@ import (
 	"context"
 	"github.com/jfrog/jfrog-cli-core/utils/config"
 	"github.com/jfrog/jfrog-client-go/utils/io/fileutils"
-	"github.com/jfrog/jfrog-support-bundle-flunky/commands"
+	"github.com/jfrog/jfrog-support-bundle-flunky/commands/actions"
+	"github.com/jfrog/jfrog-support-bundle-flunky/commands/http"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -22,7 +23,7 @@ func Test_DownloadIntegration(t *testing.T) {
 			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails,
 				targetRtDetails *config.ArtifactoryDetails) {
 				supportBundle := setUpSupportBundle(t, rtDetails)
-				bundle, err := commands.DownloadSupportBundle(context.Background(), &commands.HTTPClient{RtDetails: rtDetails},
+				bundle, err := actions.DownloadSupportBundle(context.Background(), &http.Client{RtDetails: rtDetails},
 					30*time.Second, 100*time.Millisecond, supportBundle)
 				require.NoError(t, err)
 				assert.Contains(t, bundle, supportBundle)
@@ -34,7 +35,7 @@ func Test_DownloadIntegration(t *testing.T) {
 			Name: "Not found",
 			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails,
 				targetRtDetails *config.ArtifactoryDetails) {
-				bundle, err := commands.DownloadSupportBundle(context.Background(), &commands.HTTPClient{RtDetails: rtDetails},
+				bundle, err := actions.DownloadSupportBundle(context.Background(), &http.Client{RtDetails: rtDetails},
 					1*time.Second, 100*time.Millisecond, "unknown")
 				require.Empty(t, bundle)
 				assert.EqualError(t, err, "http request failed with: 404 Not Found")
@@ -50,11 +51,10 @@ func assertBundleIsAZipArchive(t *testing.T, bundle string) {
 	require.NoError(t, r.Close())
 }
 
-func setUpSupportBundle(t *testing.T, rtDetails *config.ArtifactoryDetails) commands.BundleID {
+func setUpSupportBundle(t *testing.T, rtDetails *config.ArtifactoryDetails) actions.BundleID {
 	t.Helper()
-	conf := commands.SupportBundleCommandConfiguration{CaseNumber: "foo"}
-	supportBundle, err := commands.CreateSupportBundle(&commands.HTTPClient{RtDetails: rtDetails}, &conf,
-		commands.NewDefaultOptionsProvider())
+	supportBundle, err := actions.CreateSupportBundle(&http.Client{RtDetails: rtDetails}, "foo",
+		actions.NewDefaultOptionsProvider())
 	require.NoError(t, err)
 	require.NotEmpty(t, supportBundle)
 	return supportBundle

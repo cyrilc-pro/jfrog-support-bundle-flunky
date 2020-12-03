@@ -1,6 +1,7 @@
-package commands
+package actions
 
 import (
+	"github.com/jfrog/jfrog-support-bundle-flunky/commands/http"
 	"time"
 )
 
@@ -18,20 +19,24 @@ type PromptOptionsProvider struct {
 	Prompter Prompter
 }
 
-func newPromptOptionsProvider() OptionsProvider {
+// NewPromptOptionsProvider creates a new PromptOptionsProvider.
+func NewPromptOptionsProvider() *PromptOptionsProvider {
 	return &PromptOptionsProvider{
 		GetDate:  time.Now,
-		Prompter: &Terminal{},
+		Prompter: &TerminalPrompter{},
 	}
 }
 
 // GetOptions gets the options based on user answers.
-func (p *PromptOptionsProvider) GetOptions(caseNumber string) (SupportBundleCreationOptions, error) {
+func (p *PromptOptionsProvider) GetOptions(caseNumber CaseNumber) (http.SupportBundleCreationOptions, error) {
 	options, err := (&DefaultOptionsProvider{getDate: p.GetDate}).GetOptions(caseNumber)
 	if err != nil {
 		return options, err
 	}
-	options.Parameters = &SupportBundleParameters{Logs: &SupportBundleParametersLogs{}, ThreadDump: &SupportBundleParametersThreadDump{}}
+	options.Parameters = &http.SupportBundleParameters{
+		Logs:       &http.SupportBundleParametersLogs{},
+		ThreadDump: &http.SupportBundleParametersThreadDump{},
+	}
 
 	if options.Parameters.Logs.Include, err = p.Prompter.AskIncludeLogs(); err != nil {
 		return options, err

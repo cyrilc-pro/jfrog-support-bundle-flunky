@@ -3,6 +3,7 @@ package commands
 import (
 	"errors"
 	"github.com/jfrog/jfrog-cli-core/utils/config"
+	"github.com/jfrog/jfrog-support-bundle-flunky/commands/actions"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -116,7 +117,7 @@ func Test_getPromptOptions(t *testing.T) {
 		test := tests[i]
 		t.Run(test.name, func(t *testing.T) {
 			provider := getPromptOptions(test.flagProvider)
-			_, isDefault := provider.(*DefaultOptionsProvider)
+			_, isDefault := provider.(*actions.DefaultOptionsProvider)
 			assert.Equal(t, test.expectDefault, isDefault)
 			assert.Equal(t, "prompt-options", test.flagProvider.receivedFlagName)
 		})
@@ -253,23 +254,15 @@ func Test_getRtTargetDetails(t *testing.T) {
 		name            string
 		flagProvider    *flagProviderStub
 		configHelper    serviceHelper
-		sbConf          *SupportBundleCommandConfiguration
 		expectedDetails *config.ArtifactoryDetails
 		expectedError   string
 	}{
 		{
 			name:         "default",
 			flagProvider: &flagProviderStub{},
-			configHelper: &serviceHelperStub{
-				details: &config.ArtifactoryDetails{
-					Url: "supportlogsurl",
-				},
-			},
-			sbConf: &SupportBundleCommandConfiguration{
-				JfrogSupportLogsURL: "supportlogsurl",
-			},
+			configHelper: &serviceHelperStub{},
 			expectedDetails: &config.ArtifactoryDetails{
-				Url: "supportlogsurl",
+				Url: "https://supportlogs.jfrog.com.invalid/",
 			},
 		},
 		{
@@ -280,7 +273,6 @@ func Test_getRtTargetDetails(t *testing.T) {
 					Url: "my-artifactory-url",
 				},
 			},
-			sbConf: &SupportBundleCommandConfiguration{},
 			expectedDetails: &config.ArtifactoryDetails{
 				Url: "my-artifactory-url/",
 			},
@@ -298,7 +290,7 @@ func Test_getRtTargetDetails(t *testing.T) {
 	for i := range tests {
 		test := tests[i]
 		t.Run(test.name, func(t *testing.T) {
-			result, err := getTargetDetails(test.flagProvider, test.configHelper, test.sbConf)
+			result, err := getTargetDetails(test.flagProvider, test.configHelper)
 			if test.expectedError != "" {
 				require.Error(t, err)
 				assert.EqualError(t, err, test.expectedError)
@@ -307,85 +299,6 @@ func Test_getRtTargetDetails(t *testing.T) {
 				assert.Equal(t, test.expectedDetails, result)
 			}
 			assert.Equal(t, "target-server-id", test.flagProvider.receivedFlagName)
-		})
-	}
-}
-
-func Test_parseJSON(t *testing.T) {
-	tests := []struct {
-		name          string
-		payload       string
-		expectedError string
-	}{
-		{
-			name:    "valid json",
-			payload: `{"key":"value"}`,
-		},
-		{
-			name:          "invalid json",
-			payload:       `{"key":"value"`,
-			expectedError: "unexpected end of JSON input",
-		},
-		{
-			name:          "not json",
-			payload:       `"key"`,
-			expectedError: "json: cannot unmarshal string into Go value of type commands.JSONObject",
-		},
-	}
-
-	for i := range tests {
-		test := tests[i]
-		t.Run(test.name, func(t *testing.T) {
-			result, err := ParseJSON([]byte(test.payload))
-			if test.expectedError != "" {
-				require.Error(t, err)
-				assert.EqualError(t, err, test.expectedError)
-			} else {
-				require.NoError(t, err)
-				assert.NotEmpty(t, result)
-			}
-		})
-	}
-}
-
-func Test_getJSONString(t *testing.T) {
-	tests := []struct {
-		name          string
-		key           string
-		expectedValue string
-		expectedError string
-	}{
-		{
-			name:          "valid key",
-			key:           "key",
-			expectedValue: "value",
-		},
-		{
-			name:          "unknown key",
-			key:           "unknown",
-			expectedError: "property unknown not found",
-		},
-		{
-			name:          "not a string",
-			key:           "object_key",
-			expectedError: "property object_key is not a string",
-		},
-	}
-
-	for i := range tests {
-		test := tests[i]
-		t.Run(test.name, func(t *testing.T) {
-			payload := []byte(`{"key":"value", "object_key":{}}`)
-			result, err := ParseJSON(payload)
-			require.NoError(t, err)
-			got, err := result.GetString(test.key)
-			if test.expectedError != "" {
-				require.Error(t, err)
-				assert.EqualError(t, err, test.expectedError)
-			} else {
-				require.NoError(t, err)
-				assert.Equal(t, test.expectedValue, got)
-			}
 		})
 	}
 }

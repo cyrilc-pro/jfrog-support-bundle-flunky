@@ -1,4 +1,4 @@
-package commands
+package actions
 
 import (
 	"context"
@@ -23,17 +23,17 @@ type checkStatusClientStub struct {
 	statusCode       int
 	payloads         []string
 	err              error
-	receivedBundleID BundleID
+	receivedBundleID string
 }
 
-func (cs *checkStatusClientStub) GetSupportBundleStatus(bundleID BundleID) (status int, responseBytes []byte, err error) {
+func (cs *checkStatusClientStub) GetSupportBundleStatus(bundleID string) (status int, responseBytes []byte, err error) {
 	responseBytes = []byte(cs.payloads[cs.count])
 	cs.receivedBundleID = bundleID
 	cs.count++
 	return cs.statusCode, responseBytes, cs.err
 }
 
-func (cs *checkStatusClientStub) DownloadSupportBundle(_ BundleID) (*http.Response, error) {
+func (cs *checkStatusClientStub) DownloadSupportBundle(string) (*http.Response, error) {
 	return nil, nil
 }
 
@@ -152,7 +152,7 @@ func Test_WaitUntilReady(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 			}
-			assert.Equal(t, BundleID("bundleID"), test.clientStub.receivedBundleID)
+			assert.Equal(t, "bundleID", test.clientStub.receivedBundleID)
 		})
 	}
 }
@@ -160,14 +160,14 @@ func Test_WaitUntilReady(t *testing.T) {
 type downloadClientStub struct {
 	response         *http.Response
 	err              error
-	receivedBundleID BundleID
+	receivedBundleID string
 }
 
-func (dc *downloadClientStub) GetSupportBundleStatus(BundleID) (status int, responseBytes []byte, err error) {
+func (dc *downloadClientStub) GetSupportBundleStatus(string) (status int, responseBytes []byte, err error) {
 	return http.StatusOK, []byte(fmt.Sprintf(body, "success")), nil
 }
 
-func (dc *downloadClientStub) DownloadSupportBundle(bundleID BundleID) (*http.Response, error) {
+func (dc *downloadClientStub) DownloadSupportBundle(bundleID string) (*http.Response, error) {
 	dc.receivedBundleID = bundleID
 	return dc.response, dc.err
 }
@@ -234,7 +234,7 @@ func Test_DownloadSupportBundle(t *testing.T) {
 				require.NoError(t, err)
 				assert.Contains(t, filePath, "bundleID.zip")
 			}
-			assert.Equal(t, BundleID("bundleID"), test.clientStub.receivedBundleID)
+			assert.Equal(t, "bundleID", test.clientStub.receivedBundleID)
 		})
 	}
 }

@@ -1,4 +1,4 @@
-package commands
+package http
 
 import (
 	"encoding/json"
@@ -15,7 +15,7 @@ type SupportBundleCreationOptions struct {
 // SupportBundleParameters defines the content of a Support Bundle.
 type SupportBundleParameters struct {
 	Configuration bool                               `json:"configuration"`
-	Logs          *SupportBundleParametersLogs       `json:"logs,omitempty"`
+	Logs          *SupportBundleParametersLogs       `json:"logs"`
 	System        bool                               `json:"system"`
 	ThreadDump    *SupportBundleParametersThreadDump `json:"thread_dump"`
 }

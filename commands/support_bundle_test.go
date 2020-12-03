@@ -4,6 +4,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/jfrog/jfrog-cli-core/plugins/components"
+	"github.com/jfrog/jfrog-support-bundle-flunky/commands/actions"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"os"
@@ -72,7 +73,7 @@ func Test_parseArguments(t *testing.T) {
 	tests := []struct {
 		name          string
 		ctx           *components.Context
-		expected      string
+		expected      actions.CaseNumber
 		expectedError string
 	}{
 		{
@@ -99,14 +100,13 @@ func Test_parseArguments(t *testing.T) {
 	for i := range tests {
 		test := tests[i]
 		t.Run(test.name, func(t *testing.T) {
-			got, err := parseArguments(test.ctx)
+			caseNumber, err := parseArguments(test.ctx)
 			if test.expectedError != "" {
 				require.Error(t, err)
 				assert.EqualError(t, err, test.expectedError)
 			} else {
 				require.NoError(t, err)
-				assert.Equal(t, test.expected, got.CaseNumber)
-				assert.Equal(t, "https://supportlogs.jfrog.com.invalid/", got.JfrogSupportLogsURL)
+				assert.Equal(t, test.expected, caseNumber)
 			}
 		})
 	}
