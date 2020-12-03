@@ -15,7 +15,7 @@ type Prompter interface {
 
 // PromptOptionsProvider provides Support Bundle creation options based on a Prompter.
 type PromptOptionsProvider struct {
-	GetDate  func() time.Time
+	GetDate  Clock
 	Prompter Prompter
 }
 
