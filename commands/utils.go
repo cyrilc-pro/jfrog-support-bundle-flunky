@@ -10,9 +10,12 @@ import (
 )
 
 const (
-	HTTPContentType     = "Content-Type"
+	// HTTPContentType is the HTTP header name for Content-Type
+	HTTPContentType = "Content-Type"
+	// HTTPContentTypeJSON is the header value for JSON Content-Type
 	HTTPContentTypeJSON = "application/json"
-	HTTPContentTypeXML  = "application/xml"
+	// HTTPContentTypeXML is the header value for XML Content-Type
+	HTTPContentTypeXML = "application/xml"
 )
 
 type flagValueProvider interface {
@@ -96,14 +99,17 @@ func getDurationOrDefault(value string, defaultValue time.Duration) time.Duratio
 	return duration
 }
 
+// JSONObject is the map representation of a JSON object.
 type JSONObject map[string]interface{}
 
+// ParseJSON parses bytes into a JSONObject.
 func ParseJSON(bytes []byte) (JSONObject, error) {
 	parsedResponse := make(JSONObject)
 	err := json.Unmarshal(bytes, &parsedResponse)
 	return parsedResponse, err
 }
 
+// GetString gets the value of a given JSON property.
 func (o JSONObject) GetString(p string) (string, error) {
 	v, ok := o[p]
 	if !ok {

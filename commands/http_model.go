@@ -5,12 +5,14 @@ import (
 	"fmt"
 )
 
+// SupportBundleCreationOptions defines options for the creation of a Support Bundle.
 type SupportBundleCreationOptions struct {
 	Name        string                   `json:"name"`
 	Description string                   `json:"description"`
 	Parameters  *SupportBundleParameters `json:"parameters"`
 }
 
+// SupportBundleParameters defines the content of a Support Bundle.
 type SupportBundleParameters struct {
 	Configuration bool                               `json:"configuration"`
 	Logs          *SupportBundleParametersLogs       `json:"logs,omitempty"`
@@ -18,17 +20,20 @@ type SupportBundleParameters struct {
 	ThreadDump    *SupportBundleParametersThreadDump `json:"thread_dump"`
 }
 
+// SupportBundleParametersLogs defines which logs are included in a Support Bundle.
 type SupportBundleParametersLogs struct {
 	Include   bool   `json:"include"`
 	StartDate string `json:"start_date"`
 	EndDate   string `json:"end_date"`
 }
 
+// SupportBundleParametersThreadDump defines which thread dumps are included in a Support Bundle.
 type SupportBundleParametersThreadDump struct {
 	Count    uint `json:"count"`
 	Interval uint `json:"interval"`
 }
 
+// MarshalJSON serializes a SupportBundleCreationOptions to JSON.
 func (p SupportBundleCreationOptions) MarshalJSON() ([]byte, error) {
 	params := "{}"
 	if p.Parameters != nil {

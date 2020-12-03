@@ -11,14 +11,17 @@ import (
 
 const undefinedStatusCode = -1
 
+// HTTPClient is a facade for interacting with a JFrog Artifactory service through REST calls.
 type HTTPClient struct {
 	RtDetails *config.ArtifactoryDetails
 }
 
+// GetURL gives the URL of the JFrog Artifactory service
 func (c *HTTPClient) GetURL() string {
 	return c.RtDetails.Url
 }
 
+// CreateSupportBundle creates a Support Bundle.
 // nolint: bodyclose // Body is closed by ArtifactoryHttpClient
 func (c *HTTPClient) CreateSupportBundle(options SupportBundleCreationOptions) (status int, responseBytes []byte, err error) {
 	servicesManager, err := utils.CreateServiceManager(c.RtDetails, false)
@@ -40,7 +43,8 @@ func (c *HTTPClient) CreateSupportBundle(options SupportBundleCreationOptions) (
 	return response.StatusCode, bytes, nil
 }
 
-// This returns the support bundle in the response.Body. Closing the body is the caller's responsibility.
+// DownloadSupportBundle downloads a Support Bundle. This returns the support bundle in the response.Body.
+// Closing the body is the caller's responsibility.
 func (c *HTTPClient) DownloadSupportBundle(bundleID BundleID) (*http.Response, error) {
 	servicesManager, err := utils.CreateServiceManager(c.RtDetails, false)
 	if err != nil {
@@ -52,6 +56,7 @@ func (c *HTTPClient) DownloadSupportBundle(bundleID BundleID) (*http.Response, e
 	return resp, err
 }
 
+// GetSupportBundleStatus gets the status of a Support Bundle creation process.
 // nolint: bodyclose // Body is closed by ArtifactoryHttpClient
 func (c *HTTPClient) GetSupportBundleStatus(bundleID BundleID) (status int, responseBytes []byte, err error) {
 	servicesManager, err := utils.CreateServiceManager(c.RtDetails, false)
@@ -67,6 +72,7 @@ func (c *HTTPClient) GetSupportBundleStatus(bundleID BundleID) (status int, resp
 	return resp.StatusCode, responseBytes, nil
 }
 
+// UploadSupportBundle uploads a Support Bundle.
 // nolint: bodyclose // Body is closed by ArtifactoryHttpClient
 func (c *HTTPClient) UploadSupportBundle(sbFilePath string, repoKey string, caseNumber string,
 	filename string) (status int, responseBytes []byte, err error) {
