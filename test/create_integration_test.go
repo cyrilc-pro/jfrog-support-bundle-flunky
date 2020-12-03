@@ -17,9 +17,7 @@ func Test_CreateIntegration(t *testing.T) {
 			Name: "Success with default options",
 			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails,
 				targetRtDetails *config.ArtifactoryDetails) {
-				conf := commands.SupportBundleCommandConfiguration{CaseNumber: "foo"}
-				id, err := commands.CreateSupportBundle(&commands.HTTPClient{RtDetails: rtDetails}, &conf,
-					&commands.DefaultOptionsProvider{GetDate: time.Now})
+				id, err := createSupportBundle(rtDetails, commands.NewDefaultOptionsProvider())
 				require.NoError(t, err)
 				require.NotEmpty(t, id)
 			},
@@ -28,14 +26,7 @@ func Test_CreateIntegration(t *testing.T) {
 			Name: "Success with all options disabled",
 			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails,
 				targetRtDetails *config.ArtifactoryDetails) {
-				conf := commands.SupportBundleCommandConfiguration{CaseNumber: "foo"}
-				id, err := commands.CreateSupportBundle(&commands.HTTPClient{RtDetails: rtDetails}, &conf,
-					&commands.PromptOptionsProvider{GetDate: time.Now, Prompter: &commands.PrompterStub{
-						IncludeLogs:          false,
-						IncludeSystem:        false,
-						IncludeConfiguration: false,
-						IncludeThreadDump:    false,
-					}})
+				id, err := createSupportBundle(rtDetails, newPromptOptionsProviderStub(false))
 				require.NoError(t, err)
 				require.NotEmpty(t, id)
 			},
@@ -44,14 +35,7 @@ func Test_CreateIntegration(t *testing.T) {
 			Name: "Success with all options enabled",
 			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails,
 				targetRtDetails *config.ArtifactoryDetails) {
-				conf := commands.SupportBundleCommandConfiguration{CaseNumber: "foo"}
-				id, err := commands.CreateSupportBundle(&commands.HTTPClient{RtDetails: rtDetails}, &conf,
-					&commands.PromptOptionsProvider{GetDate: time.Now, Prompter: &commands.PrompterStub{
-						IncludeLogs:          true,
-						IncludeSystem:        true,
-						IncludeConfiguration: true,
-						IncludeThreadDump:    true,
-					}})
+				id, err := createSupportBundle(rtDetails, newPromptOptionsProviderStub(true))
 				require.NoError(t, err)
 				require.NotEmpty(t, id)
 			},
@@ -60,10 +44,8 @@ func Test_CreateIntegration(t *testing.T) {
 			Name: "Offline",
 			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails,
 				targetRtDetails *config.ArtifactoryDetails) {
-				conf := commands.SupportBundleCommandConfiguration{CaseNumber: "foo"}
-				_, err := commands.CreateSupportBundle(&commands.HTTPClient{RtDetails: &config.ArtifactoryDetails{
-					Url: "http://unknown.invalid/",
-				}}, &conf, &commands.DefaultOptionsProvider{GetDate: time.Now})
+				_, err := createSupportBundle(&config.ArtifactoryDetails{Url: "http://unknown.invalid/"},
+					commands.NewDefaultOptionsProvider())
 				require.Error(t, err)
 				// exact message depends on OS
 				require.Contains(t, err.Error(), "dial tcp:")
@@ -71,4 +53,19 @@ func Test_CreateIntegration(t *testing.T) {
 		},
 	}
 	runIntegrationTests(t, tests)
+}
+
+func newPromptOptionsProviderStub(includeAll bool) *commands.PromptOptionsProvider {
+	return &commands.PromptOptionsProvider{GetDate: time.Now, Prompter: &commands.PrompterStub{
+		IncludeLogs:          includeAll,
+		IncludeSystem:        includeAll,
+		IncludeConfiguration: includeAll,
+		IncludeThreadDump:    includeAll,
+	}}
+}
+
+func createSupportBundle(rtDetails *config.ArtifactoryDetails, optionsProvider commands.OptionsProvider) (
+	commands.BundleID, error) {
+	conf := commands.SupportBundleCommandConfiguration{CaseNumber: "foo"}
+	return commands.CreateSupportBundle(&commands.HTTPClient{RtDetails: rtDetails}, &conf, optionsProvider)
 }

@@ -74,11 +74,11 @@ func getTargetRepo(flagProvider flagValueProvider) string {
 	return flagProvider.GetStringFlagValue(targetRepo)
 }
 
-func getPromptOptions(flagProvider flagValueProvider) optionsProvider {
+func getPromptOptions(flagProvider flagValueProvider) OptionsProvider {
 	if flagProvider.GetBoolFlagValue(promptOptions) {
 		return newPromptOptionsProvider()
 	}
-	return newDefaultOptionsProvider()
+	return NewDefaultOptionsProvider()
 }
 
 func getRetryInterval(flagProvider flagValueProvider) time.Duration {
