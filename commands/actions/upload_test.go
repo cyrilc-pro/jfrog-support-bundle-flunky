@@ -70,7 +70,7 @@ func Test_Upload(t *testing.T) {
 			assert.Equal(t, "/some/file", test.clientStub.receivedPath)
 			assert.Equal(t, "logsRepo", test.clientStub.receivedRepo)
 			assert.Equal(t, "1234", test.clientStub.receivedCaseNumber)
-			assert.Equal(t, "1970-01-01T00:00:01Z.zip", test.clientStub.receivedFilename)
+			assert.Equal(t, "1970-01-01T00_00_01Z.zip", test.clientStub.receivedFilename)
 		})
 	}
 }
