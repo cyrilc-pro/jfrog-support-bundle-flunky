@@ -28,15 +28,21 @@ func (c *createSupportBundleHTTPClientStub) CreateSupportBundle(payload http.Sup
 }
 
 func Test_CreateSupportBundle(t *testing.T) {
+	clock := func() time.Time {
+		return time.Unix(1351807721, 0)
+	}
+
 	tests := []struct {
-		name      string
-		given     createSupportBundleHTTPClientStub
-		expectErr string
-		expectID  BundleID
+		name                 string
+		givenHTTPClient      createSupportBundleHTTPClientStub
+		givenOptionsProvider OptionsProvider
+		expectErr            string
+		expectClientSkipped  bool
+		expectID             BundleID
 	}{
 		{
 			name: "success",
-			given: createSupportBundleHTTPClientStub{
+			givenHTTPClient: createSupportBundleHTTPClientStub{
 				statusCode: 200,
 				response:   `{"id": "foo"}`,
 				err:        nil,
@@ -46,7 +52,7 @@ func Test_CreateSupportBundle(t *testing.T) {
 		},
 		{
 			name: "bad request",
-			given: createSupportBundleHTTPClientStub{
+			givenHTTPClient: createSupportBundleHTTPClientStub{
 				statusCode: 400,
 				response:   `{}`,
 				err:        nil,
@@ -55,7 +61,7 @@ func Test_CreateSupportBundle(t *testing.T) {
 		},
 		{
 			name: "bad json",
-			given: createSupportBundleHTTPClientStub{
+			givenHTTPClient: createSupportBundleHTTPClientStub{
 				statusCode: 200,
 				response:   `bad json`,
 				err:        nil,
@@ -64,7 +70,7 @@ func Test_CreateSupportBundle(t *testing.T) {
 		},
 		{
 			name: "missing id",
-			given: createSupportBundleHTTPClientStub{
+			givenHTTPClient: createSupportBundleHTTPClientStub{
 				statusCode: 200,
 				response:   `{}`,
 				err:        nil,
@@ -73,7 +79,7 @@ func Test_CreateSupportBundle(t *testing.T) {
 		},
 		{
 			name: "bad id",
-			given: createSupportBundleHTTPClientStub{
+			givenHTTPClient: createSupportBundleHTTPClientStub{
 				statusCode: 200,
 				response:   `{"id":{}}`,
 				err:        nil,
@@ -81,11 +87,22 @@ func Test_CreateSupportBundle(t *testing.T) {
 			expectErr: "property id is not a string",
 		},
 		{
-			name: "error",
-			given: createSupportBundleHTTPClientStub{
+			name: "error in HTTPClient",
+			givenHTTPClient: createSupportBundleHTTPClientStub{
 				err: errors.New("oops"),
 			},
 			expectErr: "oops",
+		},
+		{
+			name: "error in OptionsProvider",
+			givenOptionsProvider: &PromptOptionsProvider{
+				GetDate: clock,
+				Prompter: &PrompterStub{
+					err: errors.New("oops"),
+				},
+			},
+			expectClientSkipped: true,
+			expectErr:           "oops",
 		},
 	}
 
@@ -93,24 +110,25 @@ func Test_CreateSupportBundle(t *testing.T) {
 		test := tests[i]
 		t.Run(test.name, func(t *testing.T) {
 			caseNumber := CaseNumber("1234")
-			clock := func() time.Time {
-				timestamp, err := time.Parse(time.RFC3339, "2012-11-01T22:08:41+00:00")
-				require.NoError(t, err)
-				return timestamp
+			optionsProvider := test.givenOptionsProvider
+			if optionsProvider == nil {
+				optionsProvider = &DefaultOptionsProvider{getDate: clock}
 			}
-			id, err := CreateSupportBundle(&test.given, caseNumber, &DefaultOptionsProvider{getDate: clock})
+			id, err := CreateSupportBundle(&test.givenHTTPClient, caseNumber, optionsProvider)
 			if test.expectErr != "" {
 				require.Error(t, err)
 				require.EqualError(t, err, test.expectErr)
 			} else {
 				require.Equal(t, test.expectID, id)
 			}
-			assert.Empty(t, cmp.Diff(
-				http.SupportBundleCreationOptions{
-					Name:        "JFrog Support Case number 1234",
-					Description: "Generated on 2012-11-01T22:08:41Z",
-				},
-				test.given.actualPayload))
+			if !test.expectClientSkipped {
+				assert.Empty(t, cmp.Diff(
+					http.SupportBundleCreationOptions{
+						Name:        "JFrog Support Case number 1234",
+						Description: "Generated on 2012-11-01T22:08:41Z",
+					},
+					test.givenHTTPClient.actualPayload))
+			}
 		})
 	}
 }
