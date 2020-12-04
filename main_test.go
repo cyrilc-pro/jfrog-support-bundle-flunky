@@ -10,7 +10,7 @@ import (
 
 func Test_getApp(t *testing.T) {
 	expectedApp := components.App{
-		Name: "jfrog-support-bundle-flunky",
+		Name: "sb-flunky",
 		Description: "This plugin dutifully creates a Support Bundle on an Artifactory service and obediently " +
 			"uploads it to another Artifactory service.",
 		Version: "v0.1.0",

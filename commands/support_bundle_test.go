@@ -58,9 +58,9 @@ func Test_GetSupportBundleCommand(t *testing.T) {
 	}
 
 	expected := components.Command{
-		Name:        "support-bundle",
+		Name:        "support-case",
 		Description: `Creates a Support Bundle and uploads it to JFrog Support "dropbox" service`,
-		Aliases:     []string{"sb"},
+		Aliases:     []string{"c", "case"},
 		Arguments:   expectedArgs,
 		Flags:       expectedFlags,
 		EnvVars:     nil,

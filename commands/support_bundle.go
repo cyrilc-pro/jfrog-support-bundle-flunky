@@ -29,9 +29,9 @@ const (
 // GetSupportBundleCommand returns the description of the "support-bundle" command.
 func GetSupportBundleCommand() components.Command {
 	return components.Command{
-		Name:        "support-bundle",
+		Name:        "support-case",
 		Description: `Creates a Support Bundle and uploads it to JFrog Support "dropbox" service`,
-		Aliases:     []string{"sb"},
+		Aliases:     []string{"c", "case"},
 		Arguments:   getArguments(),
 		Flags:       getFlags(),
 		EnvVars:     nil,
