@@ -34,7 +34,7 @@ jobs:
       - name: Test
         env:
           TEST_LICENSE: ${{ secrets.TEST_LICENSE }}
-          ARTIFACTORY_VERSION: ${{ matrix.artifactory }}
+          ARTIFACTORY_VERSION: latest
         run: go test -timeout 45m -v ./... -coverprofile=coverage.txt -covermode=count
 
       - name: Upload coverage report to Codecov.io
