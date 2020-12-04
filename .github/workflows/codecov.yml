@@ -32,6 +32,9 @@ jobs:
           go get -v -t -d ./...
 
       - name: Test
+        env:
+          TEST_LICENSE: ${{ secrets.TEST_LICENSE }}
+          ARTIFACTORY_VERSION: ${{ matrix.artifactory }}
         run: go test -timeout 45m -v ./... -coverprofile=coverage.txt -covermode=count
 
       - name: Upload coverage report to Codecov.io
@@ -39,5 +42,3 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.txt
-          flags: unit-test
-          name: codecov-umbrella
