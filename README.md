@@ -3,6 +3,7 @@
 [![Go Report](https://goreportcard.com/badge/github.com/cyrilc-pro/jfrog-support-bundle-flunky?style=plastic)](https://goreportcard.com/report/github.com/cyrilc-pro/jfrog-support-bundle-flunky)
 [![Codacy grade](https://img.shields.io/codacy/grade/b286b95be72c4aa19de86f8c4a985f34?label=codacy&style=plastic)](https://www.codacy.com/gh/cyrilc-pro/jfrog-support-bundle-flunky/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=cyrilc-pro/jfrog-support-bundle-flunky&amp;utm_campaign=Badge_Grade)
 [![Libraries.io dependency status for GitHub repo](https://img.shields.io/librariesio/github/cyrilc-pro/jfrog-support-bundle-flunky?label=libraries.io&style=plastic)](https://libraries.io/github/cyrilc-pro/jfrog-support-bundle-flunky)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fcyrilc-pro%2Fjfrog-support-bundle-flunky.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fcyrilc-pro%2Fjfrog-support-bundle-flunky?ref=badge_shield)
 
 # JFrog Support Bundle Flunky
 
@@ -88,3 +89,7 @@ None.
 ## Release Notes
 
 The release notes are available [here](RELEASE.md).
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fcyrilc-pro%2Fjfrog-support-bundle-flunky.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fcyrilc-pro%2Fjfrog-support-bundle-flunky?ref=badge_large)
