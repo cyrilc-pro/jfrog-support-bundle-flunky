@@ -15,24 +15,24 @@ This plugin helps with generating and exchanging a JFrog Support Bundle with JFr
 Installing the latest version:
 
 ``` bash
-jfrog plugin install jfrog-support-bundle-flunky
+jfrog plugin install sb-flunky
 ```
 
 Installing a specific version:
 
 ``` bash
-jfrog plugin install jfrog-support-bundle-flunky@version`
+jfrog plugin install sb-flunky@version`
 ```
 
 Uninstalling the plugin
 
 ``` bash
-jfrog plugin uninstall jfrog-support-bundle-flunky`
+jfrog plugin uninstall sb-flunky`
 ```
 
 ## Usage
 
-This plugin has a unique command `support-bundle` that:
+This plugin has a unique command `support-case` that:
 
 1.  Creates a Support Bundle on the target Artifactory service
 
@@ -47,18 +47,25 @@ This plugin has a unique command `support-bundle` that:
 
 ### Aliases
 
--   `sb`
+-   `case`
+-   `c`
 
 ### Examples
 
 ``` bash
-jfrog support-bundle 1234
+jfrog sb-flunky support-case 1234
 ```
 
 or
 
 ``` bash
-jfrog sb 1234
+jfrog sb-flunky case 1234
+```
+
+or
+
+``` bash
+jfrog sb-flunky c 1234
 ```
 
 ### Optional flags
