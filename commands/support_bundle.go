@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/jfrog/jfrog-cli-core/artifactory/commands"
 	"github.com/jfrog/jfrog-cli-core/plugins/components"
@@ -11,7 +10,6 @@ import (
 	"github.com/jfrog/jfrog-support-bundle-flunky/commands/actions"
 	"github.com/jfrog/jfrog-support-bundle-flunky/commands/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -87,57 +85,99 @@ func getFlags() []components.Flag {
 	}
 }
 
-type artifactoryServiceHelper struct{}
-
-func (cw *artifactoryServiceHelper) GetConfig(serverID string, excludeRefreshableTokens bool) (*config.ArtifactoryDetails, error) {
-	return commands.GetConfig(serverID, excludeRefreshableTokens)
+func supportBundleCmd(componentContext *components.Context) error {
+	_, err := SupportBundleCmd(context.Background(), &cliAdapter{ctx: componentContext})
+	return err
 }
 
-func (cw *artifactoryServiceHelper) CreateInitialRefreshableTokensIfNeeded(artifactoryDetails *config.ArtifactoryDetails) error {
+type cliAdapter struct {
+	ctx *components.Context
+}
+
+func (p *cliAdapter) GetStringFlagValue(flagName string) string {
+	return p.ctx.GetStringFlagValue(flagName)
+}
+func (p *cliAdapter) GetBoolFlagValue(flagName string) bool {
+	return p.ctx.GetBoolFlagValue(flagName)
+}
+func (p *cliAdapter) GetArguments() []string {
+	return p.ctx.Arguments
+}
+func (p *cliAdapter) GetRtDetails() (*config.ArtifactoryDetails, error) {
+	return getRtDetails(p, p)
+}
+func (p *cliAdapter) GetTargetDetails() (*config.ArtifactoryDetails, error) {
+	return getTargetDetails(p, p)
+}
+func (p *cliAdapter) GetConfig(serverID string, excludeRefreshableTokens bool) (*config.ArtifactoryDetails, error) {
+	return commands.GetConfig(serverID, excludeRefreshableTokens)
+}
+func (p *cliAdapter) CreateInitialRefreshableTokensIfNeeded(artifactoryDetails *config.ArtifactoryDetails) error {
 	return config.CreateInitialRefreshableTokensIfNeeded(artifactoryDetails)
 }
 
-func supportBundleCmd(componentContext *components.Context) error {
-	ctx := context.Background()
-	caseNumber, err := parseArguments(componentContext)
-	if err != nil {
-		return err
-	}
+// CliFacade is a facade for JFrog CLI APIs. Introduced to facilitate testing
+type CliFacade interface {
+	flagValueProvider
+	argumentsProvider
+	artifactoryDetailsProvider
+}
 
-	artifactoryConfigHelper := &artifactoryServiceHelper{}
-	rtDetails, err := getRtDetails(componentContext, artifactoryConfigHelper)
+// SupportBundleCmdResult gives details on what the command has done
+type SupportBundleCmdResult struct {
+	BundleID      actions.BundleID
+	LocalFilePath string
+	UploadPath    string
+}
+
+// SupportBundleCmd is the core of the command
+func SupportBundleCmd(ctx context.Context, cli CliFacade) (*SupportBundleCmdResult, error) {
+	caseNumber, err := parseArguments(cli)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	log.Debug(fmt.Sprintf("Using: %s...", rtDetails.Url))
 	log.Output(fmt.Sprintf("Case number is %s", caseNumber))
 
-	targetRtDetails, err := getTargetDetails(componentContext, artifactoryConfigHelper)
+	client, err := getRtClient(cli.GetRtDetails)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	log.Debug(fmt.Sprintf("Selected Artifactory: %s", client.GetURL()))
 
-	client := &http.Client{RtDetails: rtDetails}
-	targetClient := &http.Client{RtDetails: targetRtDetails}
-
-	// 1. Create Support Bundle
-	supportBundle, err := actions.CreateSupportBundle(client, caseNumber, getPromptOptions(componentContext))
+	targetClient, err := getRtClient(cli.GetTargetDetails)
 	if err != nil {
-		return err
+		return nil, err
+	}
+	log.Debug(fmt.Sprintf("Selected \"dropbox\" Artifactory: %s", targetClient.GetURL()))
+
+	result := &SupportBundleCmdResult{}
+	// 1. Create Support Bundle
+	result.BundleID, err = actions.CreateSupportBundle(client, caseNumber, getPromptOptions(cli))
+	if err != nil {
+		return result, err
 	}
 
 	// 2. Download Support Bundle
-	supportBundleArchivePath, err := actions.DownloadSupportBundle(ctx, client, getTimeout(componentContext),
-		getRetryInterval(componentContext), supportBundle)
+	result.LocalFilePath, err = actions.DownloadSupportBundle(ctx, client, getTimeout(cli),
+		getRetryInterval(cli), result.BundleID)
 	if err != nil {
-		return err
+		return result, err
 	}
-	if shouldCleanup(componentContext) {
-		defer deleteSupportBundleArchive(supportBundleArchivePath)
+	if shouldCleanup(cli) {
+		defer deleteSupportBundleArchive(result.LocalFilePath)
 	}
 
 	// 3. Upload Support Bundle
-	return actions.UploadSupportBundle(targetClient, caseNumber, supportBundleArchivePath, getTargetRepo(componentContext), time.Now)
+	result.UploadPath, err = actions.UploadSupportBundle(targetClient, caseNumber, result.LocalFilePath, getTargetRepo(cli), time.Now)
+	return result, err
+}
+
+func getRtClient(rtDetailsProvider func() (*config.ArtifactoryDetails, error)) (*http.Client, error) {
+	rtDetails, err := rtDetailsProvider()
+	if err != nil {
+		return nil, err
+	}
+	return &http.Client{RtDetails: rtDetails}, nil
 }
 
 func deleteSupportBundleArchive(supportBundleArchivePath string) {
@@ -148,9 +188,10 @@ func deleteSupportBundleArchive(supportBundleArchivePath string) {
 	}
 }
 
-func parseArguments(ctx *components.Context) (actions.CaseNumber, error) {
-	if len(ctx.Arguments) != 1 {
-		return "", errors.New("Wrong number of arguments. Expected: 1, " + "Received: " + strconv.Itoa(len(ctx.Arguments)))
+func parseArguments(ctx argumentsProvider) (actions.CaseNumber, error) {
+	arguments := ctx.GetArguments()
+	if len(arguments) != 1 {
+		return "", fmt.Errorf("wrong number of arguments. Expected: 1, Received: %d", len(arguments))
 	}
-	return actions.CaseNumber(strings.TrimSpace(ctx.Arguments[0])), nil
+	return actions.CaseNumber(strings.TrimSpace(arguments[0])), nil
 }

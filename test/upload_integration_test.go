@@ -23,10 +23,11 @@ func Test_UploadIntegration(t *testing.T) {
 			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails,
 				targetRtDetails *config.ArtifactoryDetails) {
 				testBundle := getSupportBundle(t)
-				err := actions.UploadSupportBundle(&http.Client{RtDetails: targetRtDetails},
+				path, err := actions.UploadSupportBundle(&http.Client{RtDetails: targetRtDetails},
 					"foo", testBundle, "logs",
 					func() time.Time { return time.Unix(1, 1) })
 				assert.NoError(t, err)
+				assert.Equal(t, "logs/foo/1970-01-01T00_00_01Z.zip", path)
 			},
 		},
 		{
@@ -35,9 +36,10 @@ func Test_UploadIntegration(t *testing.T) {
 				targetRtDetails *config.ArtifactoryDetails) {
 				testBundle := getSupportBundle(t)
 				targetDetailsWithoutCreds := &config.ArtifactoryDetails{Url: targetRtDetails.Url}
-				err := actions.UploadSupportBundle(&http.Client{RtDetails: targetDetailsWithoutCreds},
+				path, err := actions.UploadSupportBundle(&http.Client{RtDetails: targetDetailsWithoutCreds},
 					"foo", testBundle, "logs", func() time.Time { return time.Unix(2, 2) })
 				assert.NoError(t, err)
+				assert.Equal(t, "logs/foo/1970-01-01T00_00_02Z.zip", path)
 			},
 		},
 		{
@@ -46,7 +48,7 @@ func Test_UploadIntegration(t *testing.T) {
 				targetRtDetails *config.ArtifactoryDetails) {
 				testBundle := getSupportBundle(t)
 				invalidTarget := &config.ArtifactoryDetails{Url: "http://invalid"}
-				err := actions.UploadSupportBundle(&http.Client{RtDetails: invalidTarget},
+				_, err := actions.UploadSupportBundle(&http.Client{RtDetails: invalidTarget},
 					"foo", testBundle, "logs", func() time.Time { return time.Unix(3, 3) })
 				require.Error(t, err)
 				assert.Contains(t, err.Error(), "dial tcp:")
