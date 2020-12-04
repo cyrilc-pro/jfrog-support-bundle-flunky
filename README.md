@@ -89,7 +89,3 @@ None.
 ## Release Notes
 
 The release notes are available [here](RELEASE.md).
-
-
-## License
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fcyrilc-pro%2Fjfrog-support-bundle-flunky.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fcyrilc-pro%2Fjfrog-support-bundle-flunky?ref=badge_large)
