@@ -73,3 +73,53 @@ jobs:
           TEST_LICENSE: ${{ secrets.TEST_LICENSE }}
           ARTIFACTORY_VERSION: ${{ matrix.artifactory }}
         run: go test -run Integration -timeout 30m -v ./test/...
+
+  build-binaries:
+    name: Build binary
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ 'windows', 'darwin', 'linux' ]
+        arch: [ 'amd64', '386' ]
+        exclude:
+          - os: darwin
+            arch: 386
+        include:
+          - os: linux
+            arch: arm
+          - os: linux
+            arch: arm64
+      fail-fast: false
+    needs: build
+    steps:
+
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.14
+
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Cache Go modules
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-build-${{ hashFiles('**/go.sum') }}
+
+      - name: Select windows binary extension
+        if: ${{ matrix.os == 'windows' }}
+        run: echo "bin_extension=.exe" >> $GITHUB_ENV
+
+      - name: Select binary name
+        run: echo "bin_name=support-bundle-flunky-${{ matrix.os }}-${{ matrix.arch }}$bin_extension" >> $GITHUB_ENV
+
+      - name: Build ${{ matrix.os }}
+        run: GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -o $bin_name main.go
+
+      - name: Save ${{ matrix.os }} binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.bin_name }}
+          path: support-bundle-flunky*
+          if-no-files-found: error
