@@ -2,6 +2,7 @@ name: Go
 
 env:
   GO_VERSION: ^1.14
+  BIN_NAME: sb-flunky
 
 on:
   push:
@@ -36,7 +37,7 @@ jobs:
       - name: Build
         run: go build -v ./...
 
-      - name: Unit tests
+      - name: Test
         run: |
           go test -short -timeout 10m -v ./... -coverpkg=all -coverprofile=coverage.txt -covermode=count
 
@@ -52,7 +53,7 @@ jobs:
           file: ./coverage-fixed.txt
 
   integration-test:
-    name: Integration test
+    name: Integration tests
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -124,16 +125,16 @@ jobs:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-build-${{ hashFiles('**/go.sum') }}
 
-      - name: Build ${{ matrix.os }}
-        run: GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -o support-bundle-flunky-${{ matrix.os }}-${{ matrix.arch }} main.go
+      - name: Build
+        run: GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -o ${{ env.BIN_NAME }}-${{ matrix.os }}-${{ matrix.arch }} main.go
 
       - name: Rename binary (Windows-only)
         if: ${{ matrix.os == 'windows' }}
-        run: mv support-bundle-flunky-${{ matrix.os }}-${{ matrix.arch }} support-bundle-flunky-${{ matrix.os }}-${{ matrix.arch }}.exe
+        run: mv ${{ env.BIN_NAME }}-${{ matrix.os }}-${{ matrix.arch }} ${{ env.BIN_NAME }}-${{ matrix.os }}-${{ matrix.arch }}.exe
 
-      - name: Save ${{ matrix.os }} binary
+      - name: Save binary
         uses: actions/upload-artifact@v2
         with:
-          name: support-bundle-flunky-${{ matrix.os }}-${{ matrix.arch }}
-          path: support-bundle-flunky*
+          name: ${{ env.BIN_NAME }}-${{ matrix.os }}-${{ matrix.arch }}
+          path: ${{ env.BIN_NAME }}*
           if-no-files-found: error
