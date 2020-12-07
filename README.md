@@ -2,7 +2,6 @@
 [![Codecov](https://img.shields.io/codecov/c/github/cyrilc-pro/jfrog-support-bundle-flunky?style=plastic&label=codecov)](https://codecov.io/gh/cyrilc-pro/jfrog-support-bundle-flunky)
 [![Go Report](https://goreportcard.com/badge/github.com/cyrilc-pro/jfrog-support-bundle-flunky?style=plastic)](https://goreportcard.com/report/github.com/cyrilc-pro/jfrog-support-bundle-flunky)
 [![Codacy grade](https://img.shields.io/codacy/grade/b286b95be72c4aa19de86f8c4a985f34?label=codacy&style=plastic)](https://www.codacy.com/gh/cyrilc-pro/jfrog-support-bundle-flunky/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=cyrilc-pro/jfrog-support-bundle-flunky&amp;utm_campaign=Badge_Grade)
-[![Libraries.io dependency status for GitHub repo](https://img.shields.io/librariesio/github/cyrilc-pro/jfrog-support-bundle-flunky?label=libraries.io&style=plastic)](https://libraries.io/github/cyrilc-pro/jfrog-support-bundle-flunky)
 
 # JFrog Support Bundle Flunky
 
