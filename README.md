@@ -14,20 +14,20 @@ This plugin helps with generating and exchanging a JFrog Support Bundle with JFr
 
 Installing the latest version:
 
-``` bash
+```
 jfrog plugin install sb-flunky
 ```
 
 Installing a specific version:
 
-``` bash
-jfrog plugin install sb-flunky@version`
+```
+jfrog plugin install sb-flunky@version
 ```
 
 Uninstalling the plugin
 
-``` bash
-jfrog plugin uninstall sb-flunky`
+```
+jfrog plugin uninstall sb-flunky
 ```
 
 ## Usage
@@ -52,19 +52,19 @@ This plugin has a unique command `support-case` that:
 
 ### Examples
 
-``` bash
+```
 jfrog sb-flunky support-case 1234
 ```
 
 or
 
-``` bash
+```
 jfrog sb-flunky case 1234
 ```
 
 or
 
-``` bash
+```
 jfrog sb-flunky c 1234
 ```
 
