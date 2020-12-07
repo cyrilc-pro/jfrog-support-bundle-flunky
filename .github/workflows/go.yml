@@ -1,5 +1,8 @@
 name: Go
 
+env:
+  GO_VERSION: ^1.14
+
 on:
   push:
     branches: [ master ]
@@ -9,14 +12,14 @@ on:
 jobs:
 
   build:
-    name: Build
+    name: Build & Unit tests
     runs-on: ubuntu-latest
     steps:
 
-      - name: Set up Go 1.x
+      - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: ^1.14
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Check out code
         uses: actions/checkout@v2
@@ -28,37 +31,40 @@ jobs:
           key: ${{ runner.os }}-build-${{ hashFiles('**/go.sum') }}
 
       - name: Get dependencies
-        run: |
-          go get -v -t -d ./...
+        run: go get -v -t -d ./...
 
       - name: Build
         run: go build -v ./...
 
-  unit-test:
-    name: Unit tests
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v2
+      - name: Unit tests
+        run: |
+          go test -short -timeout 10m -v ./... -coverpkg=all -coverprofile=coverage.txt -covermode=count
 
-      - name: Cache Go modules
-        uses: actions/cache@v2
+      - name: Fix coverage report
+        run: |
+          grep "mode: " coverage.txt > coverage-fixed.txt
+          grep "jfrog-support-bundle-flunky" coverage.txt | grep -v "/test/" | grep -v "_stub.go" >> coverage-fixed.txt
+
+      - name: Upload coverage report to Codecov.io
+        uses: codecov/codecov-action@v1
         with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-build-${{ hashFiles('**/go.sum') }}
-
-      - name: Test
-        run: go test -short -timeout 10m -v ./...
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage-fixed.txt
 
   integration-test:
     name: Integration test
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        artifactory: [ '7.2.1', '7.3.2', '7.4.3', '7.5.7', '7.6.3', '7.7.8', '7.9.2', '7.10.6', '7.11.2' ]
+        artifactory: [ '7.2.1', '7.3.2', '7.4.3', '7.5.7', '7.6.3', '7.7.8', '7.9.2', '7.10.6', 'latest' ]
     needs: build
     steps:
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
       - name: Check out code
         uses: actions/checkout@v2
 
@@ -72,7 +78,18 @@ jobs:
         env:
           TEST_LICENSE: ${{ secrets.TEST_LICENSE }}
           ARTIFACTORY_VERSION: ${{ matrix.artifactory }}
-        run: go test -run Integration -timeout 30m -v ./test/...
+        run: go test -run Integration -timeout 30m -v ./test/... -coverpkg=all -coverprofile=coverage.txt -covermode=count
+
+      - name: Fix coverage report
+        run: |
+          grep "mode: " coverage.txt > coverage-fixed.txt
+          grep "jfrog-support-bundle-flunky" coverage.txt | grep -v "/test/" | grep -v "_stub.go" >> coverage-fixed.txt
+
+      - name: Upload coverage report to Codecov.io
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage-fixed.txt
 
   build-binaries:
     name: Build binary
@@ -93,10 +110,10 @@ jobs:
     needs: build
     steps:
 
-      - name: Set up Go 1.x
+      - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: ^1.14
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Check out code
         uses: actions/checkout@v2
@@ -107,19 +124,16 @@ jobs:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-build-${{ hashFiles('**/go.sum') }}
 
-      - name: Select windows binary extension
-        if: ${{ matrix.os == 'windows' }}
-        run: echo "bin_extension=.exe" >> $GITHUB_ENV
-
-      - name: Select binary name
-        run: echo "bin_name=support-bundle-flunky-${{ matrix.os }}-${{ matrix.arch }}$bin_extension" >> $GITHUB_ENV
-
       - name: Build ${{ matrix.os }}
-        run: GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -o $bin_name main.go
+        run: GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -o support-bundle-flunky-${{ matrix.os }}-${{ matrix.arch }} main.go
+
+      - name: Rename binary (Windows-only)
+        if: ${{ matrix.os == 'windows' }}
+        run: mv support-bundle-flunky-${{ matrix.os }}-${{ matrix.arch }} support-bundle-flunky-${{ matrix.os }}-${{ matrix.arch }}.exe
 
       - name: Save ${{ matrix.os }} binary
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ env.bin_name }}
+          name: support-bundle-flunky-${{ matrix.os }}-${{ matrix.arch }}
           path: support-bundle-flunky*
           if-no-files-found: error
