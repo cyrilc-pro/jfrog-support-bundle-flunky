@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func Test_parseJSON(t *testing.T) {
+func TestParseJSON(t *testing.T) {
 	tests := []struct {
 		name          string
 		payload       string
@@ -43,7 +43,7 @@ func Test_parseJSON(t *testing.T) {
 	}
 }
 
-func Test_getJSONString(t *testing.T) {
+func TestJSONObject_GetString(t *testing.T) {
 	tests := []struct {
 		name          string
 		key           string

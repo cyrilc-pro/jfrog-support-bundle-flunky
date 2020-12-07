@@ -69,38 +69,44 @@ func Test_GetSupportBundleCommand(t *testing.T) {
 		cmpopts.IgnoreFields(components.Command{}, "Action")))
 }
 
+type args []string
+
+func (args args) GetArguments() []string {
+	return args
+}
+
 func Test_parseArguments(t *testing.T) {
 	tests := []struct {
 		name          string
-		ctx           *components.Context
+		argsProvider  args
 		expected      actions.CaseNumber
 		expectedError string
 	}{
 		{
-			name:     "parse valid argument",
-			ctx:      &components.Context{Arguments: []string{"1234"}},
-			expected: "1234",
+			name:         "parse valid argument",
+			argsProvider: []string{"1234"},
+			expected:     "1234",
 		},
 		{
-			name:     "parse valid argument with whitespace",
-			ctx:      &components.Context{Arguments: []string{"   1234  "}},
-			expected: "1234",
+			name:         "parse valid argument with whitespace",
+			argsProvider: []string{"   1234  "},
+			expected:     "1234",
 		},
 		{
 			name:          "parse too many arguments",
-			ctx:           &components.Context{Arguments: []string{"1234", "5678"}},
-			expectedError: "Wrong number of arguments. Expected: 1, Received: 2",
+			argsProvider:  []string{"1234", "5678"},
+			expectedError: "wrong number of arguments. Expected: 1, Received: 2",
 		},
 		{
 			name:          "not enough arguments",
-			ctx:           &components.Context{},
-			expectedError: "Wrong number of arguments. Expected: 1, Received: 0",
+			argsProvider:  nil,
+			expectedError: "wrong number of arguments. Expected: 1, Received: 0",
 		},
 	}
 	for i := range tests {
 		test := tests[i]
 		t.Run(test.name, func(t *testing.T) {
-			caseNumber, err := parseArguments(test.ctx)
+			caseNumber, err := parseArguments(test.argsProvider)
 			if test.expectedError != "" {
 				require.Error(t, err)
 				assert.EqualError(t, err, test.expectedError)

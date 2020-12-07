@@ -11,12 +11,6 @@ import (
 )
 
 func Test_Prompt(t *testing.T) {
-	clock := func() time.Time {
-		timestamp, err := time.Parse(time.RFC3339, "2012-11-01T22:08:41+00:00")
-		require.NoError(t, err)
-		return timestamp
-	}
-
 	tests := []struct {
 		name             string
 		stub             PrompterStub
@@ -130,7 +124,12 @@ func Test_Prompt(t *testing.T) {
 	for i := range tests {
 		test := tests[i]
 		t.Run(test.name, func(t *testing.T) {
-			provider := PromptOptionsProvider{GetDate: clock, Prompter: &test.stub}
+			provider := PromptOptionsProvider{
+				GetDate: func() time.Time {
+					return time.Unix(1351807721, 0)
+				},
+				Prompter: &test.stub,
+			}
 			options, err := provider.GetOptions("foo")
 			if test.expectErr != "" {
 				require.Error(t, err)

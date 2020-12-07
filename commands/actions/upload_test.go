@@ -60,7 +60,7 @@ func Test_Upload(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			caseNumber := CaseNumber("1234")
 			now := func() time.Time { return time.Unix(1, 1) }
-			err := UploadSupportBundle(test.clientStub, caseNumber, "/some/file", "logsRepo", now)
+			path, err := UploadSupportBundle(test.clientStub, caseNumber, "/some/file", "logsRepo", now)
 			if test.expectedErrorMessage != "" {
 				require.Error(t, err)
 				assert.EqualError(t, err, test.expectedErrorMessage)
@@ -71,6 +71,7 @@ func Test_Upload(t *testing.T) {
 			assert.Equal(t, "logsRepo", test.clientStub.receivedRepo)
 			assert.Equal(t, "1234", test.clientStub.receivedCaseNumber)
 			assert.Equal(t, "1970-01-01T00_00_01Z.zip", test.clientStub.receivedFilename)
+			assert.Equal(t, "logsRepo/1234/1970-01-01T00_00_01Z.zip", path)
 		})
 	}
 }

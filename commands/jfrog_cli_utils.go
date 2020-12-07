@@ -14,6 +14,15 @@ type flagValueProvider interface {
 	GetBoolFlagValue(flagName string) bool
 }
 
+type argumentsProvider interface {
+	GetArguments() []string
+}
+
+type artifactoryDetailsProvider interface {
+	GetRtDetails() (*config.ArtifactoryDetails, error)
+	GetTargetDetails() (*config.ArtifactoryDetails, error)
+}
+
 type serviceHelper interface {
 	GetConfig(serverID string, excludeRefreshableTokens bool) (*config.ArtifactoryDetails, error)
 	CreateInitialRefreshableTokensIfNeeded(artifactoryDetails *config.ArtifactoryDetails) error
