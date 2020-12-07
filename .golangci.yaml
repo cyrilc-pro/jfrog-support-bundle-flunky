@@ -163,7 +163,7 @@ issues:
         - funlen
         - gomnd
         - unused
-    - path: itest_utils\.go
+    - path: test/.*\.go
       linters:
         - gomnd
         - funlen
