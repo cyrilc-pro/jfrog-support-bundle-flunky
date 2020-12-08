@@ -38,8 +38,7 @@ func getRtDetails(flagProvider flagValueProvider, configHelper serviceHelper) (*
 func getTargetDetails(flagProvider flagValueProvider, configProvider serviceHelper) (*config.ArtifactoryDetails, error) {
 	serverID := flagProvider.GetStringFlagValue(targetServerIDFlag)
 	if serverID == "" {
-		// TODO change this when everything works correctly "https://supportlogs.jfrog.com/" (keep the trailing slash!)
-		return &config.ArtifactoryDetails{Url: "https://supportlogs.jfrog.com.invalid/"}, nil
+		return &config.ArtifactoryDetails{Url: "https://supportlogs.jfrog.com/"}, nil
 	}
 	details, err := buildRtDetailsFromServerID(serverID, configProvider)
 	if err != nil {
