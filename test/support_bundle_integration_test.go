@@ -39,9 +39,10 @@ func Test_SupportBundleIntegration(t *testing.T) {
 					})
 				require.NoError(t, err)
 
-				require.NotEmpty(t, r.BundleID)
-				require.NotEmpty(t, r.LocalFilePath)
-				require.NotEmpty(t, r.UploadPath)
+				require.NotNil(t, r)
+				assert.NotEmpty(t, r.BundleID)
+				assert.NotEmpty(t, r.LocalFilePath)
+				assert.NotEmpty(t, r.UploadPath)
 
 				exists, err := uploadedPathExists(targetRtDetails, r.UploadPath)
 				require.NoError(t, err)
@@ -75,9 +76,10 @@ func Test_SupportBundleIntegration(t *testing.T) {
 					})
 				require.NoError(t, err)
 
-				require.NotEmpty(t, r.BundleID)
-				require.NotEmpty(t, r.LocalFilePath)
-				require.NotEmpty(t, r.UploadPath)
+				require.NotNil(t, r)
+				assert.NotEmpty(t, r.BundleID)
+				assert.NotEmpty(t, r.LocalFilePath)
+				assert.NotEmpty(t, r.UploadPath)
 
 				exists, err := uploadedPathExists(targetRtDetails, r.UploadPath)
 				require.NoError(t, err)
@@ -89,15 +91,15 @@ func Test_SupportBundleIntegration(t *testing.T) {
 
 				stat, err := os.Stat(r.LocalFilePath)
 				require.NoError(t, err)
-				require.Greater(t, stat.Size(), int64(0))
+				assert.Greater(t, stat.Size(), int64(0))
 			},
 		},
 		{
 			Name: "Fail because no args",
 			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails, targetRtDetails *config.ArtifactoryDetails) {
 				r, err := commands.SupportBundleCmd(context.Background(), &cliStub{})
-				require.EqualError(t, err, "wrong number of arguments. Expected: 1, Received: 0")
-				require.Nil(t, r)
+				assert.EqualError(t, err, "wrong number of arguments. Expected: 1, Received: 0")
+				assert.Nil(t, r)
 			},
 		},
 		{
@@ -110,8 +112,8 @@ func Test_SupportBundleIntegration(t *testing.T) {
 						rtDetails:       nil,
 						targetRtDetails: targetRtDetails,
 					})
-				require.EqualError(t, err, "failed to get RT details")
-				require.Nil(t, r)
+				assert.EqualError(t, err, "failed to get RT details")
+				assert.Nil(t, r)
 			},
 		},
 		{
@@ -124,8 +126,46 @@ func Test_SupportBundleIntegration(t *testing.T) {
 						rtDetails:       rtDetails,
 						targetRtDetails: nil,
 					})
-				require.EqualError(t, err, "failed to get Target RT details")
-				require.Nil(t, r)
+				assert.EqualError(t, err, "failed to get Target RT details")
+				assert.Nil(t, r)
+			},
+		},
+		{
+			Name: "Fail to create support bundle",
+			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails, targetRtDetails *config.ArtifactoryDetails) {
+				r, err := commands.SupportBundleCmd(
+					context.Background(),
+					&cliStub{
+						arguments: []string{"1234"},
+						rtDetails: &config.ArtifactoryDetails{
+							Url: "http://rt.invalid",
+						},
+						targetRtDetails: targetRtDetails,
+					})
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), "rt.invalid")
+				require.NotNil(t, r)
+				assert.Empty(t, r.BundleID)
+			},
+		},
+		{
+			Name: "Fail to upload support bundle",
+			Function: func(t *testing.T, rtDetails *config.ArtifactoryDetails, targetRtDetails *config.ArtifactoryDetails) {
+				r, err := commands.SupportBundleCmd(
+					context.Background(),
+					&cliStub{
+						arguments: []string{"1234"},
+						rtDetails: rtDetails,
+						targetRtDetails: &config.ArtifactoryDetails{
+							Url: "http://rt.invalid",
+						},
+					})
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), "rt.invalid")
+				require.NotNil(t, r)
+				assert.NotEmpty(t, r.BundleID)
+				assert.NotEmpty(t, r.LocalFilePath)
+				assert.NotEmpty(t, r.UploadPath)
 			},
 		},
 	}
