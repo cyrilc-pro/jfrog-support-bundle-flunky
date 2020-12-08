@@ -262,7 +262,7 @@ func Test_getRtTargetDetails(t *testing.T) {
 			flagProvider: &flagProviderStub{},
 			configHelper: &serviceHelperStub{},
 			expectedDetails: &config.ArtifactoryDetails{
-				Url: "https://supportlogs.jfrog.com.invalid/",
+				Url: "https://supportlogs.jfrog.com/",
 			},
 		},
 		{
