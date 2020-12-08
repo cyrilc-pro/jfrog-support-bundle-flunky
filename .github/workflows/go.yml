@@ -51,7 +51,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage-fixed.txt
-          flags: unit-tests,${{ runner.os }}
+          flags: unit-tests
 
   integration-test:
     name: Integration tests
@@ -92,7 +92,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage-fixed.txt
-          flags: integration-tests,${{ runner.os }}
+          flags: integration-tests
 
   build-binaries:
     name: Build binary
