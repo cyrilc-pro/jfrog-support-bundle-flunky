@@ -114,9 +114,30 @@ func Test_Prompt(t *testing.T) {
 			},
 		},
 		{
-			name: "Error",
+			name: "Error on IncludeLogs",
 			stub: PrompterStub{
-				err: errors.New("oops"),
+				IncludeLogsErr: errors.New("oops"),
+			},
+			expectErr: "oops",
+		},
+		{
+			name: "Error on IncludeSystem",
+			stub: PrompterStub{
+				IncludeSystemErr: errors.New("oops"),
+			},
+			expectErr: "oops",
+		},
+		{
+			name: "Error on IncludeConfiguration",
+			stub: PrompterStub{
+				IncludeConfigurationErr: errors.New("oops"),
+			},
+			expectErr: "oops",
+		},
+		{
+			name: "Error on IncludeThreadDump",
+			stub: PrompterStub{
+				IncludeThreadDumpErr: errors.New("oops"),
 			},
 			expectErr: "oops",
 		},

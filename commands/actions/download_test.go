@@ -158,18 +158,19 @@ func Test_WaitUntilReady(t *testing.T) {
 }
 
 type downloadClientStub struct {
-	response         *http.Response
-	err              error
-	receivedBundleID string
+	response           *http.Response
+	getStatusErr       error
+	downloadErr        error
+	downloadedBundleID string
 }
 
 func (dc *downloadClientStub) GetSupportBundleStatus(string) (status int, responseBytes []byte, err error) {
-	return http.StatusOK, []byte(fmt.Sprintf(body, "success")), nil
+	return http.StatusOK, []byte(fmt.Sprintf(body, "success")), dc.getStatusErr
 }
 
 func (dc *downloadClientStub) DownloadSupportBundle(bundleID string) (*http.Response, error) {
-	dc.receivedBundleID = bundleID
-	return dc.response, dc.err
+	dc.downloadedBundleID = bundleID
+	return dc.response, dc.downloadErr
 }
 
 func (dc *downloadClientStub) GetURL() string {
@@ -178,9 +179,10 @@ func (dc *downloadClientStub) GetURL() string {
 
 func Test_DownloadSupportBundle(t *testing.T) {
 	tests := []struct {
-		name                 string
-		clientStub           *downloadClientStub
-		expectedErrorMessage string
+		name                    string
+		clientStub              *downloadClientStub
+		expectedErrorMessage    string
+		expectDownloadURLCalled bool
 	}{
 		{
 			name: "successful download",
@@ -189,14 +191,26 @@ func Test_DownloadSupportBundle(t *testing.T) {
 					StatusCode: http.StatusOK,
 					Body:       ioutil.NopCloser(strings.NewReader("file-contents")),
 				}},
+			expectDownloadURLCalled: true,
 		},
 		{
-			name: "client returns error",
+			name: "client returns error Download",
 			clientStub: &downloadClientStub{
 				response: &http.Response{
 					StatusCode: -1,
 				},
-				err: errors.New("yikes, something really bad happened"),
+				downloadErr: errors.New("yikes, something really bad happened"),
+			},
+			expectedErrorMessage:    "yikes, something really bad happened",
+			expectDownloadURLCalled: true,
+		},
+		{
+			name: "client returns error during GetStatus",
+			clientStub: &downloadClientStub{
+				response: &http.Response{
+					StatusCode: -1,
+				},
+				getStatusErr: errors.New("yikes, something really bad happened"),
 			},
 			expectedErrorMessage: "yikes, something really bad happened",
 		},
@@ -207,7 +221,8 @@ func Test_DownloadSupportBundle(t *testing.T) {
 					StatusCode: http.StatusNotFound,
 				},
 			},
-			expectedErrorMessage: "http request failed with: 404 Not Found",
+			expectedErrorMessage:    "http request failed with: 404 Not Found",
+			expectDownloadURLCalled: true,
 		},
 		{
 			name: "client returns Internal Server Error",
@@ -216,7 +231,8 @@ func Test_DownloadSupportBundle(t *testing.T) {
 					StatusCode: http.StatusInternalServerError,
 				},
 			},
-			expectedErrorMessage: "http request failed with: 500 Internal Server Error",
+			expectedErrorMessage:    "http request failed with: 500 Internal Server Error",
+			expectDownloadURLCalled: true,
 		},
 	}
 
@@ -234,7 +250,11 @@ func Test_DownloadSupportBundle(t *testing.T) {
 				require.NoError(t, err)
 				assert.Contains(t, filePath, "bundleID.zip")
 			}
-			assert.Equal(t, "bundleID", test.clientStub.receivedBundleID)
+			if test.expectDownloadURLCalled {
+				assert.Equal(t, "bundleID", test.clientStub.downloadedBundleID)
+			} else {
+				assert.Empty(t, test.clientStub.downloadedBundleID)
+			}
 		})
 	}
 }
