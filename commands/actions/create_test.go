@@ -98,7 +98,7 @@ func Test_CreateSupportBundle(t *testing.T) {
 			givenOptionsProvider: &PromptOptionsProvider{
 				GetDate: clock,
 				Prompter: &PrompterStub{
-					err: errors.New("oops"),
+					IncludeLogsErr: errors.New("oops"),
 				},
 			},
 			expectClientSkipped: true,
