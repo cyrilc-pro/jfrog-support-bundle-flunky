@@ -4,6 +4,7 @@ import "github.com/AlecAivazis/survey/v2"
 
 // TerminalPrompter is a Prompter that gets answers through questions to the user.
 type TerminalPrompter struct {
+	opts []survey.AskOpt
 }
 
 // AskIncludeLogs tells if logs must be included.
@@ -30,7 +31,8 @@ func (t *TerminalPrompter) askBoolean(question string) (bool, error) {
 	answer := false
 	confirm := &survey.Confirm{
 		Message: question,
+		Default: true,
 	}
-	err := survey.AskOne(confirm, &answer)
+	err := survey.AskOne(confirm, &answer, t.opts...)
 	return answer, err
 }
