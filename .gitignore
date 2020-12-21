@@ -16,3 +16,6 @@ jfrog-cli-plugin-template
 
 # IOS
 *.DS_Store
+
+# Coverage
+coverage.txt

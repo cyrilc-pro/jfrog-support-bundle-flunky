@@ -39,18 +39,13 @@ jobs:
 
       - name: Test
         run: |
-          go test -short -timeout 10m -v ./... -coverpkg=all -coverprofile=coverage.txt -covermode=count
-
-      - name: Fix coverage report
-        run: |
-          grep "mode: " coverage.txt > coverage-fixed.txt
-          grep "jfrog-support-bundle-flunky" coverage.txt | grep -v "/test/" | grep -v "_stub.go" >> coverage-fixed.txt
+          go test -short -timeout 10m -v ./... -coverpkg=github.com/jfrog/jfrog-support-bundle-flunky/... -coverprofile=coverage.txt -covermode=count
 
       - name: Upload coverage report to Codecov.io
         uses: codecov/codecov-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage-fixed.txt
+          file: ./coverage.txt
           flags: unit-tests
 
   integration-test:
@@ -80,18 +75,13 @@ jobs:
         env:
           TEST_LICENSE: ${{ secrets.TEST_LICENSE }}
           ARTIFACTORY_VERSION: ${{ matrix.artifactory }}
-        run: go test -run Integration -timeout 30m -v ./test/... -coverpkg=all -coverprofile=coverage.txt -covermode=count
-
-      - name: Fix coverage report
-        run: |
-          grep "mode: " coverage.txt > coverage-fixed.txt
-          grep "jfrog-support-bundle-flunky" coverage.txt | grep -v "/test/" | grep -v "_stub.go" >> coverage-fixed.txt
+        run: go test -run Integration -timeout 30m -v ./test/... -coverpkg=github.com/jfrog/jfrog-support-bundle-flunky/... -coverprofile=coverage.txt -covermode=count
 
       - name: Upload coverage report to Codecov.io
         uses: codecov/codecov-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage-fixed.txt
+          file: ./coverage.txt
           flags: integration-tests
 
   build-binaries:
