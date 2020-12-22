@@ -173,7 +173,7 @@ func Test_SupportBundleIntegration(t *testing.T) {
 }
 
 func uploadedPathExists(rtDetails *config.ArtifactoryDetails, path string) (bool, error) {
-	endpoint := fmt.Sprintf("%sapi/storage/%s", rtDetails.Url, path)
+	endpoint := fmt.Sprintf("%sapi/storage/%s", rtDetails.Url, strings.ReplaceAll(path, rtDetails.Url, ""))
 	req, err := http.NewRequestWithContext(context.Background(), "HEAD", endpoint, nil)
 	if err != nil {
 		return false, err
