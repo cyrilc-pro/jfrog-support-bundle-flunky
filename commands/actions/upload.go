@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/jfrog/jfrog-client-go/utils/log"
 	"net/http"
-	"strings"
 )
 
 type uploadHTTPClient interface {
@@ -16,7 +15,7 @@ type uploadHTTPClient interface {
 // UploadSupportBundle uploads a Support Bundle.
 func UploadSupportBundle(client uploadHTTPClient, caseNumber CaseNumber, sbFilePath string,
 	repoKey string, now Clock) (string, error) {
-	filename := fmt.Sprintf("%s.zip", strings.ReplaceAll(formattedString(now()), ":", "_"))
+	filename := now().UTC().Format("SB-20060102-150405Z.zip")
 	url := client.GetURL() + fmt.Sprintf("%s/%s/%s", repoKey, caseNumber, filename)
 	log.Debug(fmt.Sprintf("Uploading Support Bundle %s to %s", sbFilePath, url))
 
