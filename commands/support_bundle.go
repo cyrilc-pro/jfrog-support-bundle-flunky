@@ -86,7 +86,11 @@ func getFlags() []components.Flag {
 }
 
 func supportBundleCmd(componentContext *components.Context) error {
-	_, err := SupportBundleCmd(context.Background(), &cliAdapter{ctx: componentContext})
+	r, err := SupportBundleCmd(context.Background(), &cliAdapter{ctx: componentContext})
+	if err != nil {
+		return err
+	}
+	log.Output(r.UploadURL)
 	return err
 }
 
@@ -127,7 +131,7 @@ type CliFacade interface {
 type SupportBundleCmdResult struct {
 	BundleID      actions.BundleID
 	LocalFilePath string
-	UploadPath    string
+	UploadURL     string
 }
 
 // SupportBundleCmd is the core of the command
@@ -136,7 +140,7 @@ func SupportBundleCmd(ctx context.Context, cli CliFacade) (*SupportBundleCmdResu
 	if err != nil {
 		return nil, err
 	}
-	log.Output(fmt.Sprintf("Case number is %s", caseNumber))
+	log.Debug(fmt.Sprintf("Case number is %s", caseNumber))
 
 	client, err := getRtClient(cli.GetRtDetails)
 	if err != nil {
@@ -168,7 +172,7 @@ func SupportBundleCmd(ctx context.Context, cli CliFacade) (*SupportBundleCmdResu
 	}
 
 	// 3. Upload Support Bundle
-	result.UploadPath, err = actions.UploadSupportBundle(targetClient, caseNumber, result.LocalFilePath, getTargetRepo(cli), time.Now)
+	result.UploadURL, err = actions.UploadSupportBundle(targetClient, caseNumber, result.LocalFilePath, getTargetRepo(cli), time.Now)
 	return result, err
 }
 

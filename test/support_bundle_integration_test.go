@@ -42,9 +42,9 @@ func Test_SupportBundleIntegration(t *testing.T) {
 				require.NotNil(t, r)
 				assert.NotEmpty(t, r.BundleID)
 				assert.NotEmpty(t, r.LocalFilePath)
-				assert.NotEmpty(t, r.UploadPath)
+				assert.NotEmpty(t, r.UploadURL)
 
-				exists, err := uploadedPathExists(targetRtDetails, r.UploadPath)
+				exists, err := uploadedPathExists(targetRtDetails, r.UploadURL)
 				require.NoError(t, err)
 				assert.True(t, exists)
 
@@ -79,9 +79,9 @@ func Test_SupportBundleIntegration(t *testing.T) {
 				require.NotNil(t, r)
 				assert.NotEmpty(t, r.BundleID)
 				assert.NotEmpty(t, r.LocalFilePath)
-				assert.NotEmpty(t, r.UploadPath)
+				assert.NotEmpty(t, r.UploadURL)
 
-				exists, err := uploadedPathExists(targetRtDetails, r.UploadPath)
+				exists, err := uploadedPathExists(targetRtDetails, r.UploadURL)
 				require.NoError(t, err)
 				assert.True(t, exists)
 
@@ -165,7 +165,7 @@ func Test_SupportBundleIntegration(t *testing.T) {
 				require.NotNil(t, r)
 				assert.NotEmpty(t, r.BundleID)
 				assert.NotEmpty(t, r.LocalFilePath)
-				assert.NotEmpty(t, r.UploadPath)
+				assert.NotEmpty(t, r.UploadURL)
 			},
 		},
 	}
