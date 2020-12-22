@@ -181,19 +181,39 @@ func Test_getTargetRepo(t *testing.T) {
 	}
 }
 
+type getRtDetailsTest struct {
+	name            string
+	flagProvider    *flagProviderStub
+	configHelper    serviceHelper
+	expectedDetails *config.ArtifactoryDetails
+	expectedError   string
+}
+
+func runGetRtDetailsTests(t *testing.T, tests []getRtDetailsTest, expectedFlagName string,
+	getter func(flagProvider flagValueProvider, configProvider serviceHelper) (*config.ArtifactoryDetails, error)) {
+	for i := range tests {
+		test := tests[i]
+		t.Run(test.name, func(t *testing.T) {
+			result, err := getter(test.flagProvider, test.configHelper)
+			if test.expectedError != "" {
+				require.Error(t, err)
+				assert.EqualError(t, err, test.expectedError)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, test.expectedDetails, result)
+			}
+			assert.Equal(t, expectedFlagName, test.flagProvider.receivedFlagName)
+		})
+	}
+}
+
 func Test_getRtDetails(t *testing.T) {
 	expectedDetailsWithCreds := &config.ArtifactoryDetails{
 		Url:      "http://myurl.test/",
 		User:     "me",
 		Password: "top-secret",
 	}
-	tests := []struct {
-		name            string
-		flagProvider    *flagProviderStub
-		configHelper    serviceHelper
-		expectedDetails *config.ArtifactoryDetails
-		expectedError   string
-	}{
+	tests := []getRtDetailsTest{
 		{
 			name:         "adds trailing slash to URL",
 			flagProvider: &flagProviderStub{value: "my-favorite-artifactory"},
@@ -233,30 +253,11 @@ func Test_getRtDetails(t *testing.T) {
 		},
 	}
 
-	for i := range tests {
-		test := tests[i]
-		t.Run(test.name, func(t *testing.T) {
-			result, err := getRtDetails(test.flagProvider, test.configHelper)
-			if test.expectedError != "" {
-				require.Error(t, err)
-				assert.EqualError(t, err, test.expectedError)
-			} else {
-				require.NoError(t, err)
-				assert.Equal(t, test.expectedDetails, result)
-			}
-			assert.Equal(t, "server-id", test.flagProvider.receivedFlagName)
-		})
-	}
+	runGetRtDetailsTests(t, tests, "server-id", getRtDetails)
 }
 
 func Test_getRtTargetDetails(t *testing.T) {
-	tests := []struct {
-		name            string
-		flagProvider    *flagProviderStub
-		configHelper    serviceHelper
-		expectedDetails *config.ArtifactoryDetails
-		expectedError   string
-	}{
+	tests := []getRtDetailsTest{
 		{
 			name:         "default",
 			flagProvider: &flagProviderStub{},
@@ -287,18 +288,5 @@ func Test_getRtTargetDetails(t *testing.T) {
 		},
 	}
 
-	for i := range tests {
-		test := tests[i]
-		t.Run(test.name, func(t *testing.T) {
-			result, err := getTargetDetails(test.flagProvider, test.configHelper)
-			if test.expectedError != "" {
-				require.Error(t, err)
-				assert.EqualError(t, err, test.expectedError)
-			} else {
-				require.NoError(t, err)
-				assert.Equal(t, test.expectedDetails, result)
-			}
-			assert.Equal(t, "target-server-id", test.flagProvider.receivedFlagName)
-		})
-	}
+	runGetRtDetailsTests(t, tests, "target-server-id", getTargetDetails)
 }
