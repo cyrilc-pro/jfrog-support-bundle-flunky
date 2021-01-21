@@ -3,14 +3,13 @@ package test
 import (
 	"context"
 	"fmt"
-	"github.com/docker/go-connections/nat"
 	"github.com/jfrog/jfrog-cli-core/utils/config"
 	"github.com/jfrog/jfrog-client-go/utils/log"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
+	"golang.org/x/sync/errgroup"
 	"os"
-	"sync"
 	"testing"
 	"time"
 )
@@ -26,12 +25,6 @@ type logger interface {
 	Logf(format string, args ...interface{})
 }
 
-type rtInit struct {
-	cont    testcontainers.Container
-	details *config.ArtifactoryDetails
-	err     error
-}
-
 func runIntegrationTests(t *testing.T, tests []integrationTest) {
 	t.Helper()
 	licenseKey, exists := os.LookupEnv("TEST_LICENSE")
@@ -43,102 +36,80 @@ func runIntegrationTests(t *testing.T, tests []integrationTest) {
 	if !exists {
 		version = "latest"
 	}
-	ctx := context.Background()
+	parentCtx := context.Background()
 
-	wg := sync.WaitGroup{}
-	rt := &rtInit{}
-	targetRt := &rtInit{}
-	wg.Add(2)
-	go func() {
-		defer wg.Done()
-		initRt(ctx, t, rt, licenseKey, version)
-	}()
-	go func() {
-		defer wg.Done()
-		initTargetRt(ctx, t, targetRt, licenseKey, version)
-	}()
-	wg.Wait()
+	eg, ctx := errgroup.WithContext(parentCtx)
 
-	t.Cleanup(func() {
-		terminate(ctx, t, rt)
-	})
-	t.Cleanup(func() {
-		terminate(ctx, t, targetRt)
+	rt := &config.ArtifactoryDetails{}
+	eg.Go(func() error {
+		cleaner, err := startArtifactoryAndDeployLicense(ctx, t, rt, version, licenseKey)
+		registerCleanup(parentCtx, t, cleaner)
+		return err
 	})
 
-	require.NoError(t, rt.err)
-	require.NoError(t, targetRt.err)
+	targetRt := &config.ArtifactoryDetails{}
+	eg.Go(func() error {
+		cleaner, err := startArtifactoryAndDeployLicense(ctx, t, targetRt, version, licenseKey)
+		registerCleanup(parentCtx, t, cleaner)
+		if err != nil {
+			return err
+		}
+		return setUpTargetRepositoryAndPermissions(ctx, t, targetRt)
+	})
 
-	require.NotNil(t, rt.details)
-	require.NotNil(t, targetRt.details)
+	err := eg.Wait()
+	require.NoError(t, err)
 
 	log.SetLogger(&testLogger{t: t})
 
 	for i := range tests {
 		test := tests[i]
 		t.Run(test.Name, func(t *testing.T) {
-			test.Function(t, rt.details, targetRt.details)
+			test.Function(t, rt, targetRt)
 		})
 	}
 }
 
-func terminate(ctx context.Context, l logger, rt *rtInit) {
-	if rt.cont != nil {
-		err := rt.cont.Terminate(ctx)
-		if err != nil {
-			l.Logf("Could not terminate container: %v", err)
-		}
+type cleaner func(ctx context.Context) error
+
+func registerCleanup(ctx context.Context, t *testing.T, cleaner cleaner) {
+	if cleaner != nil {
+		t.Cleanup(func() {
+			err := cleaner(ctx)
+			if err != nil {
+				t.Logf("Could not terminate container: %v", err)
+			}
+		})
 	}
 }
 
-func initTargetRt(ctx context.Context, l logger, r *rtInit, licenseKey, version string) {
-	r.cont, r.err = createContainer(ctx, version)
-	if r.err != nil {
-		return
+func startArtifactoryAndDeployLicense(ctx context.Context, l logger, rt *config.ArtifactoryDetails,
+	version, licenseKey string) (cleaner, error) {
+	cont, err := createContainer(ctx, version)
+	if err != nil {
+		return nil, err
 	}
-	var ip string
-	ip, r.err = r.cont.Host(ctx)
-	if r.err != nil {
-		return
+	err = buildRtDetails(ctx, cont, rt)
+	if err != nil {
+		return cont.Terminate, err
 	}
-	var port nat.Port
-	port, r.err = r.cont.MappedPort(ctx, "8082")
-	if r.err != nil {
-		return
-	}
-	r.details = buildRtDetails(ip, port)
-	r.err = setUpLicense(ctx, l, licenseKey, r.details)
-	if r.err != nil {
-		return
-	}
-	r.err = setUpTargetRepositoryAndPermissions(ctx, l, r.details)
+	err = setUpLicense(ctx, l, rt, licenseKey)
+	return cont.Terminate, err
 }
 
-func initRt(ctx context.Context, l logger, r *rtInit, licenseKey, version string) {
-	r.cont, r.err = createContainer(ctx, version)
-	if r.err != nil {
-		return
+func buildRtDetails(ctx context.Context, cont testcontainers.Container, rt *config.ArtifactoryDetails) error {
+	ip, err := cont.Host(ctx)
+	if err != nil {
+		return err
 	}
-	var ip string
-	ip, r.err = r.cont.Host(ctx)
-	if r.err != nil {
-		return
+	port, err := cont.MappedPort(ctx, "8082")
+	if err != nil {
+		return err
 	}
-	var port nat.Port
-	port, r.err = r.cont.MappedPort(ctx, "8082")
-	if r.err != nil {
-		return
-	}
-	r.details = buildRtDetails(ip, port)
-	r.err = setUpLicense(ctx, l, licenseKey, r.details)
-}
-
-func buildRtDetails(ip string, port nat.Port) *config.ArtifactoryDetails {
-	return &config.ArtifactoryDetails{
-		Url:      fmt.Sprintf("http://%s:%d/artifactory/", ip, port.Int()),
-		User:     "admin",
-		Password: "password",
-	}
+	rt.Url = fmt.Sprintf("http://%s:%d/artifactory/", ip, port.Int())
+	rt.User = "admin"
+	rt.Password = "password"
+	return nil
 }
 
 func createContainer(ctx context.Context, version string) (testcontainers.Container, error) {

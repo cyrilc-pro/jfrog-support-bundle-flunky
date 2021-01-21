@@ -3,7 +3,6 @@ package actions
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io/ioutil"
@@ -14,8 +13,9 @@ import (
 )
 
 const (
-	body = `{"status":"%s"}`
-	url  = "url"
+	bodyInProgress = `{"status":"in progress"}`
+	bodySuccess    = `{"status":"success"}`
+	url            = "url"
 )
 
 type checkStatusClientStub struct {
@@ -55,7 +55,7 @@ func Test_WaitUntilReady(t *testing.T) {
 			retryInterval: 10 * time.Millisecond,
 			clientStub: &checkStatusClientStub{
 				statusCode: http.StatusOK,
-				payloads:   []string{fmt.Sprintf(body, "success")},
+				payloads:   []string{bodySuccess},
 			},
 		},
 		{
@@ -64,7 +64,7 @@ func Test_WaitUntilReady(t *testing.T) {
 			retryInterval: 5 * time.Millisecond,
 			clientStub: &checkStatusClientStub{
 				statusCode: http.StatusOK,
-				payloads:   []string{fmt.Sprintf(body, "in progress"), fmt.Sprintf(body, "success")},
+				payloads:   []string{bodyInProgress, bodySuccess},
 			},
 		},
 		{
@@ -83,7 +83,7 @@ func Test_WaitUntilReady(t *testing.T) {
 			retryInterval: 5 * time.Millisecond,
 			clientStub: &checkStatusClientStub{
 				statusCode: http.StatusInternalServerError,
-				payloads:   []string{fmt.Sprintf(body, "in progress")},
+				payloads:   []string{bodyInProgress},
 			},
 			expectedErrorMessage: "http request failed with: 500 Internal Server Error",
 		},
@@ -93,7 +93,7 @@ func Test_WaitUntilReady(t *testing.T) {
 			retryInterval: 6 * time.Millisecond,
 			clientStub: &checkStatusClientStub{
 				statusCode: http.StatusOK,
-				payloads:   []string{fmt.Sprintf(body, "in progress"), fmt.Sprintf(body, "in progress")},
+				payloads:   []string{bodyInProgress, bodyInProgress},
 			},
 			expectedErrorMessage: "timeout waiting for support bundle to be ready",
 		},
@@ -165,7 +165,7 @@ type downloadClientStub struct {
 }
 
 func (dc *downloadClientStub) GetSupportBundleStatus(string) (status int, responseBytes []byte, err error) {
-	return http.StatusOK, []byte(fmt.Sprintf(body, "success")), dc.getStatusErr
+	return http.StatusOK, []byte(bodySuccess), dc.getStatusErr
 }
 
 func (dc *downloadClientStub) DownloadSupportBundle(bundleID string) (*http.Response, error) {
