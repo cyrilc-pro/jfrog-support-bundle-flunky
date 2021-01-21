@@ -42,9 +42,9 @@ func Test_SupportBundleIntegration(t *testing.T) {
 				require.NotNil(t, r)
 				assert.NotEmpty(t, r.BundleID)
 				assert.NotEmpty(t, r.LocalFilePath)
-				assert.NotEmpty(t, r.UploadPath)
+				assert.NotEmpty(t, r.UploadURL)
 
-				exists, err := uploadedPathExists(targetRtDetails, r.UploadPath)
+				exists, err := uploadedPathExists(targetRtDetails, r.UploadURL)
 				require.NoError(t, err)
 				assert.True(t, exists)
 
@@ -79,9 +79,9 @@ func Test_SupportBundleIntegration(t *testing.T) {
 				require.NotNil(t, r)
 				assert.NotEmpty(t, r.BundleID)
 				assert.NotEmpty(t, r.LocalFilePath)
-				assert.NotEmpty(t, r.UploadPath)
+				assert.NotEmpty(t, r.UploadURL)
 
-				exists, err := uploadedPathExists(targetRtDetails, r.UploadPath)
+				exists, err := uploadedPathExists(targetRtDetails, r.UploadURL)
 				require.NoError(t, err)
 				assert.True(t, exists)
 
@@ -165,7 +165,7 @@ func Test_SupportBundleIntegration(t *testing.T) {
 				require.NotNil(t, r)
 				assert.NotEmpty(t, r.BundleID)
 				assert.NotEmpty(t, r.LocalFilePath)
-				assert.NotEmpty(t, r.UploadPath)
+				assert.NotEmpty(t, r.UploadURL)
 			},
 		},
 	}
@@ -173,7 +173,7 @@ func Test_SupportBundleIntegration(t *testing.T) {
 }
 
 func uploadedPathExists(rtDetails *config.ArtifactoryDetails, path string) (bool, error) {
-	endpoint := fmt.Sprintf("%sapi/storage/%s", rtDetails.Url, path)
+	endpoint := fmt.Sprintf("%sapi/storage/%s", rtDetails.Url, strings.ReplaceAll(path, rtDetails.Url, ""))
 	req, err := http.NewRequestWithContext(context.Background(), "HEAD", endpoint, nil)
 	if err != nil {
 		return false, err

@@ -27,7 +27,7 @@ func Test_UploadIntegration(t *testing.T) {
 					"foo", testBundle, "logs",
 					func() time.Time { return time.Unix(1, 1) })
 				assert.NoError(t, err)
-				assert.Equal(t, "logs/foo/1970-01-01T00_00_01Z.zip", path)
+				assert.Equal(t, targetRtDetails.Url+"logs/foo/SB-19700101-000001Z.zip", path)
 			},
 		},
 		{
@@ -39,7 +39,7 @@ func Test_UploadIntegration(t *testing.T) {
 				path, err := actions.UploadSupportBundle(&http.Client{RtDetails: targetDetailsWithoutCreds},
 					"foo", testBundle, "logs", func() time.Time { return time.Unix(2, 2) })
 				assert.NoError(t, err)
-				assert.Equal(t, "logs/foo/1970-01-01T00_00_02Z.zip", path)
+				assert.Equal(t, targetRtDetails.Url+"logs/foo/SB-19700101-000002Z.zip", path)
 			},
 		},
 		{
